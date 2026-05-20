@@ -29,3 +29,6 @@ captures/
 
 # Misc
 lib_classes.jar
+
+# Release outputs
+app/release/

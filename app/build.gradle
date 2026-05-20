@@ -3,6 +3,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/Users/nasiruddin/StudioProjects/AllinOne/key.jks')
+            storePassword '@4321bkna'
+            keyPassword '@4321bkna'
+            keyAlias 'androkali'
+        }
+    }
     namespace 'com.allinone.app'
     compileSdk {
         version = release(36) {
@@ -18,6 +26,9 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Strip non-English locale resources from all libraries (saves 1-3 MB)
+        resConfigs "en"
 
         // Drop x86/x86_64 native blobs — saves ~100 MB. Covers all real Android devices.
         ndk {
@@ -58,9 +69,16 @@ packaging {
             excludes += [
                 'META-INF/LICENSE*',
                 'META-INF/NOTICE*',
+                'META-INF/DEPENDENCIES',
                 'META-INF/*.kotlin_module',
+                'META-INF/*.version',
                 'kotlin/**',
                 '**/*.kotlin_builtins',
+                '**/*.kotlin_metadata',
+                'DebugProbesKt.bin',
+                '**/*.proto',
+                '**/R.txt',
+                '**/res/**',
             ]
         }
     }
