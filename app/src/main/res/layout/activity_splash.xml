@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/splash_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <!-- Subtle radial glow behind logo -->
+    <View
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_splash_glow" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- App logo -->
+        <ImageView
+            android:id="@+id/iv_splash_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_app_logo"
+            android:contentDescription="@null" />
+
+        <!-- App name -->
+        <TextView
+            android:id="@+id/tv_splash_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:alpha="0" />
+
+        <!-- Tagline -->
+        <TextView
+            android:id="@+id/tv_splash_tagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/app_tagline"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:letterSpacing="0.12"
+            android:textAllCaps="true"
+            android:alpha="0" />
+    </LinearLayout>
+
+    <!-- Loading progress bar at bottom -->
+    <ProgressBar
+        android:id="@+id/pb_splash"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="150dp"
+        android:layout_height="6dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="80dp"
+        android:alpha="0"
+        android:progressDrawable="@drawable/bg_splash_progress"
+        android:max="100" />
+</FrameLayout>

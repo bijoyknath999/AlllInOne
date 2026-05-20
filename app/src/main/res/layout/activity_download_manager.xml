@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dm_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_dark">
+
+    <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="4dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="6dp">
+
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Exit"
+            app:tint="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tv_toolbar_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="6dp"
+            android:text="@string/dm_title"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
+
+        <ImageButton
+            android:id="@+id/btn_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_settings"
+            android:contentDescription="Settings"
+            app:tint="@color/text_secondary" />
+    </LinearLayout>
+
+    <!-- Accent divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+
+    <!-- ── PANEL: Browser ───────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/panel_browser"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Chrome-style URL bar (omnibox) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
+            android:background="@color/bg_dark">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_url_bar_chrome"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp">
+
+                <ImageView
+                    android:id="@+id/iv_ssl_icon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_check_circle"
+                    android:contentDescription="@null"
+                    android:visibility="gone"
+                    app:tint="#4CAF50" />
+
+                <EditText
+                    android:id="@+id/et_url"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Search or type URL"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
+                    android:textSize="14sp"
+                    android:inputType="textUri"
+                    android:imeOptions="actionGo"
+                    android:singleLine="true" />
+
+                <ImageButton
+                    android:id="@+id/btn_clear_url"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_close_small"
+                    android:contentDescription="Clear"
+                    android:visibility="gone"
+                    app:tint="@color/text_hint" />
+
+                <ImageButton
+                    android:id="@+id/btn_refresh_stop"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_refresh"
+                    android:contentDescription="Refresh"
+                    app:tint="@color/text_hint" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Page load progress bar -->
+        <View
+            android:id="@+id/page_progress"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="@drawable/bg_progress_fill"
+            android:visibility="gone" />
+
+        <!-- WebView -->
+        <WebView
+            android:id="@+id/web_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Chrome-style bottom nav bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@color/bg_surface"
+            android:paddingHorizontal="12dp">
+
+            <ImageButton
+                android:id="@+id/btn_web_back"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_back"
+                android:alpha="0.4"
+                android:scaleType="center"
+                android:contentDescription="Back"
+                app:tint="@color/text_secondary" />
+
+            <ImageButton
+                android:id="@+id/btn_web_forward"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_forward"
+                android:alpha="0.4"
+                android:scaleType="center"
+                android:contentDescription="Forward"
+                app:tint="@color/text_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ── PANEL: Downloads ─────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/panel_downloads"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Stats header -->
+        <LinearLayout
+            android:id="@+id/ll_dl_stats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:gravity="center_vertical"
+            android:background="@color/bg_surface">
+
+            <TextView
+                android:id="@+id/tv_active_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="No active downloads"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tv_total_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#4CAF50"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Direct URL input -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input_field"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp">
+
+                <EditText
+                    android:id="@+id/et_direct_url"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="@string/dm_url_hint"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_hint"
+                    android:textSize="13sp"
+                    android:inputType="textUri"
+                    android:imeOptions="actionDone"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_direct_add"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="ADD"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="11dp"
+                android:background="@drawable/bg_button_primary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Queue label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp"
+            android:text="QUEUE"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.14" />
+
+        <!-- Empty state -->
+        <TextView
+            android:id="@+id/tv_downloads_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="32dp"
+            android:gravity="center"
+            android:text="@string/dm_empty_hint"
+            android:textColor="@color/text_hint"
+            android:textSize="14sp"
+            android:visibility="visible" />
+
+        <!-- Download list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_downloads"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- ── PANEL: Files ─────────────────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/panel_files"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Files header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:background="@color/bg_surface">
+
+            <TextView
+                android:id="@+id/tv_files_count"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Downloads/AllInOne"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <ProgressBar
+                android:id="@+id/pb_files_loading"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:indeterminate="true"
+                android:indeterminateTint="@color/color_primary"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Empty state -->
+        <TextView
+            android:id="@+id/tv_files_empty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="40dp"
+            android:gravity="center"
+            android:text="No downloaded files yet.\nBrowse the web and tap a download link."
+            android:textColor="@color/text_hint"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.4"
+            android:visibility="gone" />
+
+        <!-- Files list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_files"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- ── BottomNavigationView ─────────────────────────────────────────── -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg_surface"
+        app:menu="@menu/dm_bottom_nav"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/text_secondary"
+        app:itemTextColor="@color/text_secondary" />
+
+</LinearLayout>

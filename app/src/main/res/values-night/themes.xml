@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Force dark theme always — same as base -->
+    <style name="Base.Theme.AllInOne" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/color_primary_dark</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="android:colorBackground">@color/bg_dark</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

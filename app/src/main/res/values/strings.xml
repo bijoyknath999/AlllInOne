@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">All in One</string>
+    <string name="app_tagline">Your Personal Helper</string>
+
+    <!-- Home -->
+    <string name="home_tools_label">Tools</string>
+    <string name="tool_yt_title">YT Downloader</string>
+    <string name="tool_yt_desc">Download YouTube videos &amp; audio</string>
+
+    <!-- Download Manager -->
+    <string name="tool_dm_title">Download Manager</string>
+    <string name="tool_dm_desc">Browse the web &amp; download any file</string>
+    <string name="dm_title">Download Manager</string>
+    <string name="dm_url_hint">https://example.com/file.zip</string>
+    <string name="dm_queue_label">Queue</string>
+    <string name="dm_empty_hint">No downloads yet.\nBrowse or paste a URL above.</string>
+
+    <!-- Expense Tracker -->
+    <string name="tool_expense_title">Expense Tracker</string>
+    <string name="tool_expense_desc">Track your weekly &amp; monthly spending</string>
+
+    <!-- Reminders -->
+    <string name="tool_reminder_title">Reminders</string>
+    <string name="tool_reminder_desc">Set recurring alerts — works when app is closed</string>
+
+    <!-- YT Downloader -->
+    <string name="yt_title">YT Downloader</string>
+    <string name="yt_url_hint">Paste YouTube URL here…</string>
+    <string name="yt_format_label">Select Format</string>
+    <string name="yt_format_mp3">MP3 (Audio Only)</string>
+    <string name="yt_format_mp4">Video + Audio</string>
+    <string name="yt_btn_download">Download</string>
+    <string name="yt_btn_cancel">Cancel</string>
+    <string name="yt_status_idle">Paste a URL and choose format to start</string>
+    <string name="yt_status_preparing">Preparing download…</string>
+    <string name="yt_status_downloading">Downloading…</string>
+    <string name="yt_status_converting">Converting…</string>
+    <string name="yt_status_done">Download complete!</string>
+    <string name="yt_status_error">Error: </string>
+    <string name="yt_error_empty_url">Please enter a YouTube URL</string>
+    <string name="yt_error_invalid_url">Please enter a valid YouTube URL</string>
+    <string name="yt_initializing">Initializing yt-dlp engine…</string>
+    <string name="yt_saved_to">Saved to: </string>
+</resources>

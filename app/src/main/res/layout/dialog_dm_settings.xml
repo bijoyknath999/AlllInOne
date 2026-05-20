@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Homepage -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HOMEPAGE"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_input_field"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="4dp"
+            android:layout_marginBottom="20dp">
+
+            <EditText
+                android:id="@+id/et_homepage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp"
+                android:inputType="textUri"
+                android:imeOptions="actionDone"
+                android:singleLine="true"
+                android:paddingVertical="12dp" />
+        </LinearLayout>
+
+        <!-- User-Agent -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="USER-AGENT"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:id="@+id/chip_mobile_ua"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="10dp"
+                android:text="Mobile"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:paddingVertical="12dp"
+                android:background="@drawable/bg_chip_selected"
+                android:textColor="@color/color_primary"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chip_desktop_ua"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Desktop"
+                android:gravity="center"
+                android:textSize="13sp"
+                android:paddingVertical="12dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:textColor="@color/text_secondary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Max concurrent downloads -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MAX CONCURRENT DOWNLOADS"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/chip_max_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="1"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:paddingVertical="12dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:textColor="@color/text_secondary"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chip_max_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="2"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:paddingVertical="12dp"
+                android:background="@drawable/bg_chip_unselected"
+                android:textColor="@color/text_secondary"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/chip_max_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="3"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:paddingVertical="12dp"
+                android:background="@drawable/bg_chip_selected"
+                android:textColor="@color/color_primary"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Clear cache button -->
+        <TextView
+            android:id="@+id/btn_clear_cache"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear Browser Cache &amp; Data"
+            android:gravity="center"
+            android:textColor="@color/color_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:paddingVertical="12dp"
+            android:background="@drawable/bg_chip_unselected"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+</ScrollView>

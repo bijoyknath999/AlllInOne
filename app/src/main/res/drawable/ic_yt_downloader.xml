@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- YouTube-style play button with download arrow -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp"
+    android:height="56dp"
+    android:viewportWidth="56"
+    android:viewportHeight="56">
+
+    <!-- Rounded rect background (YouTube red) -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M8,14 Q8,8 14,8 L42,8 Q48,8 48,14 L48,36 Q48,42 42,42 L14,42 Q8,42 8,36 Z" />
+
+    <!-- Play triangle (white) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M23,18 L36,25 L23,32 Z" />
+
+    <!-- Download arrow stem -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:strokeColor="#E0E0E0"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M28,44 L28,52" />
+
+    <!-- Download arrow head -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E0E0E0"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M23,48 L28,53 L33,48" />
+
+    <!-- Download bar at bottom -->
+    <path
+        android:strokeColor="#E53935"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M20,54 L36,54" />
+</vector>

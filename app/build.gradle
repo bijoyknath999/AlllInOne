@@ -1,0 +1,92 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.allinone.app'
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.allinone.app"
+        minSdk 28
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Drop x86/x86_64 native blobs — saves ~100 MB. Covers all real Android devices.
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
+    }
+
+    buildTypes {
+        release {
+            // R8 full-mode: dead-code elimination + obfuscation
+            minifyEnabled true
+            // Remove unused drawables, layouts, strings, etc.
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                          'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+packaging {
+        jniLibs {
+            useLegacyPackaging = true   // required by youtubedl-android
+        }
+        // Strip duplicate / licence files that bloat the APK
+        resources {
+            excludes += [
+                'META-INF/LICENSE*',
+                'META-INF/NOTICE*',
+                'META-INF/*.kotlin_module',
+                'kotlin/**',
+                '**/*.kotlin_builtins',
+            ]
+        }
+    }
+
+    // App Bundle language/density splits (Play Store)
+    bundle {
+        language  { enableSplit = true }
+        density   { enableSplit = true }
+        abi       { enableSplit = true }
+    }
+}
+
+dependencies {
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.coordinatorlayout:coordinatorlayout:1.3.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
+    // yt-dlp Android wrapper (Maven Central)
+    implementation 'io.github.junkfood02.youtubedl-android:library:0.18.1'
+    implementation 'io.github.junkfood02.youtubedl-android:ffmpeg:0.18.1'
+
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}

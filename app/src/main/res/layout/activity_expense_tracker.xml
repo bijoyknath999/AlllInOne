@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="100dp">
+
+            <!-- Top bar -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <ImageView
+                    android:id="@+id/btn_back"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="@null"
+                    android:padding="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Expense Tracker"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Summary Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <!-- Period nav row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:id="@+id/btn_prev"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/ic_arrow_back"
+                            android:contentDescription="@null"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+                        <TextView
+                            android:id="@+id/tv_period_label"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="This Week"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:textAllCaps="true"
+                            android:letterSpacing="0.10" />
+
+                        <ImageView
+                            android:id="@+id/btn_next"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            android:contentDescription="@null"
+                            android:padding="4dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_total"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="$0.00"
+                        android:textColor="@color/color_primary"
+                        android:textSize="36sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tv_expense_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="0 transactions"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Tabs: Week | Month | Range -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:id="@+id/btn_week"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/bg_chip_selected"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="Week"
+                    android:textColor="@color/color_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btn_month"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="3dp"
+                    android:background="@drawable/bg_chip_unselected"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="Month"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btn_range"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_chip_unselected"
+                    android:gravity="center"
+                    android:paddingVertical="9dp"
+                    android:text="Range"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- Custom range pickers (shown only in Range mode) -->
+            <LinearLayout
+                android:id="@+id/ll_range_picker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="14dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="FROM"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.12"
+                        android:layout_marginBottom="5dp" />
+
+                    <TextView
+                        android:id="@+id/tv_range_from"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="From"
+                        android:textColor="@color/color_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_input_field"
+                        android:padding="10dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TO"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:textAllCaps="true"
+                        android:letterSpacing="0.12"
+                        android:layout_marginBottom="5dp" />
+
+                    <TextView
+                        android:id="@+id/tv_range_to"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="To"
+                        android:textColor="@color/color_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/bg_input_field"
+                        android:padding="10dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Empty state -->
+            <TextView
+                android:id="@+id/tv_empty_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:gravity="center"
+                android:text="No expenses in this period.\nTap + to add one."
+                android:textColor="@color/text_hint"
+                android:textSize="15sp"
+                android:lineSpacingExtra="4dp"
+                android:visibility="gone" />
+
+            <!-- List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_expenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/color_primary"
+        app:tint="@color/white"
+        app:elevation="6dp"
+        android:contentDescription="@null" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
