@@ -3,6 +3,12 @@
 -keep class com.yausername.youtubedl_android.** { *; }
 -keep class com.yausername.ffmpeg.** { *; }
 
+# Apache Commons Compress (used by the library to unpack Python binaries).
+# ExtraFieldUtils.<clinit> registers concrete ZipExtraField types by instantiation;
+# R8 class-merging incorrectly marks them abstract, causing "not a concrete class".
+-keep class org.apache.commons.compress.** { *; }
+-keep interface org.apache.commons.compress.** { *; }
+
 # ─── Kotlin ───────────────────────────────────────────────────────────────────
 -keep class kotlin.** { *; }
 -keep class kotlin.Metadata { *; }
@@ -10,7 +16,11 @@
 -keepclassmembers class **$WhenMappings { <fields>; }
 -keepclassmembers class kotlin.Lazy { *; }
 
-# ─── Coroutines (used internally by the library) ──────────────────────────────
+# ─── Coroutines (used internally by youtubedl-android) ───────────────────────
+# R8 class-merging can turn concrete coroutine dispatcher implementations into
+# abstract stubs, causing "class X is not a concrete class" at initPython().
+-keep class kotlinx.coroutines.** { *; }
+-keep interface kotlinx.coroutines.** { *; }
 -keepclassmembernames class kotlinx.** { volatile <fields>; }
 -dontwarn kotlinx.coroutines.**
 
@@ -63,3 +73,6 @@
 -dontwarn org.slf4j.**
 -dontwarn java.lang.instrument.**
 -dontwarn com.yausername.**
+# org.tukaani.xz is an optional XZ compression backend for Commons Compress;
+# not on the classpath but referenced — safe to ignore.
+-dontwarn org.tukaani.xz.**
