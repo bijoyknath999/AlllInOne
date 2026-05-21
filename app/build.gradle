@@ -70,15 +70,10 @@ packaging {
                 'META-INF/LICENSE*',
                 'META-INF/NOTICE*',
                 'META-INF/DEPENDENCIES',
-                'META-INF/*.kotlin_module',
                 'META-INF/*.version',
-                'kotlin/**',
-                '**/*.kotlin_builtins',
-                '**/*.kotlin_metadata',
                 'DebugProbesKt.bin',
                 '**/*.proto',
                 '**/R.txt',
-                '**/res/**',
             ]
         }
     }

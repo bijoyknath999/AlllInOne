@@ -52,13 +52,11 @@
     public static final android.os.Parcelable$Creator *;
 }
 
-# ─── R8 full-mode aggressive shrink ──────────────────────────────────────────
-# Flatten package names → smaller dex
--repackageclasses 'a'
+# ─── R8 optimization ─────────────────────────────────────────────────────────
 # Allow R8 to widen visibility to enable more inlining
 -allowaccessmodification
 # Extra optimization passes
--optimizationpasses 5
+-optimizationpasses 3
 
 # ─── Suppress common harmless warnings ───────────────────────────────────────
 -dontwarn javax.annotation.**
