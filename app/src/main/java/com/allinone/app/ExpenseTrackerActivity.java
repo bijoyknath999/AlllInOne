@@ -2,6 +2,7 @@ package com.allinone.app;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -43,6 +44,12 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
     private ExpenseAdapter adapter;
     private final List<Expense> expenses = new ArrayList<>();
 
+    private static final String PREFS_NAME = "expense_prefs";
+    private static final String KEY_BUDGET = "budget";
+
+    private double budget = 0;
+    private SharedPreferences prefs;
+
     private int viewMode = MODE_WEEK;
     // cursor for week/month navigation — points to any day inside the viewed period
     private final Calendar cursor = Calendar.getInstance();
@@ -70,12 +77,16 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
         // Default range: last 30 days → today
         rangeFrom.add(Calendar.DAY_OF_MONTH, -30);
 
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        budget = Double.longBitsToDouble(prefs.getLong(KEY_BUDGET, Double.doubleToLongBits(0)));
+
         db = new ExpenseDb(this);
         binding.btnBack.setOnClickListener(v -> finish());
         setupRecyclerView();
         setupTabs();
         setupNav();
         setupRangePickers();
+        binding.llBudgetTap.setOnClickListener(v -> showBudgetDialog());
         binding.fabAdd.setOnClickListener(v -> showAddDialog());
         load();
         animateIn();
@@ -174,6 +185,7 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
         binding.tvTotal.setText(String.format(Locale.getDefault(), "$%.2f", total));
         binding.tvExpenseCount.setText(expenses.size() + " transaction" + (expenses.size() == 1 ? "" : "s"));
         binding.tvPeriodLabel.setText(periodLabel());
+        updateBalanceViews(total);
 
         // Disable Next when cursor is already at/past the current period
         boolean atPresent = isAtPresent();
@@ -294,6 +306,54 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
                 load();
             })
             .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void updateBalanceViews(double totalSpent) {
+        if (budget <= 0) {
+            binding.tvBudget.setText("Set budget");
+            binding.tvLeftBalance.setText("—");
+            binding.tvLeftBalance.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        } else {
+            binding.tvBudget.setText(String.format(Locale.getDefault(), "$%.2f", budget));
+            double left = budget - totalSpent;
+            binding.tvLeftBalance.setText(String.format(Locale.getDefault(), "$%.2f", left));
+            binding.tvLeftBalance.setTextColor(left >= 0 ? 0xFF4CAF50 : 0xFFE53935);
+        }
+    }
+
+    private void showBudgetDialog() {
+        EditText et = new EditText(this);
+        et.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        et.setHint("Enter budget amount");
+        et.setTextColor(getResources().getColor(R.color.text_primary, null));
+        et.setHintTextColor(getResources().getColor(R.color.text_hint, null));
+        if (budget > 0) et.setText(String.format(Locale.getDefault(), "%.2f", budget));
+        int pad = dp(20);
+        et.setPadding(pad, pad, pad, pad);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Set Budget")
+            .setView(et)
+            .setPositiveButton("Save", (d, w) -> {
+                String s = et.getText().toString().trim();
+                if (s.isEmpty()) return;
+                try {
+                    budget = Double.parseDouble(s);
+                    prefs.edit().putLong(KEY_BUDGET, Double.doubleToLongBits(budget)).apply();
+                    long[] range = getRange();
+                    updateBalanceViews(db.sumAmount(range[0], range[1]));
+                } catch (NumberFormatException ex) {
+                    Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .setNeutralButton("Clear", (d, w) -> {
+                budget = 0;
+                prefs.edit().remove(KEY_BUDGET).apply();
+                long[] range = getRange();
+                updateBalanceViews(db.sumAmount(range[0], range[1]));
+            })
             .show();
     }
 
