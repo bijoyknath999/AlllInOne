@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,11 +17,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 import com.allinone.app.databinding.ActivityExpenseTrackerBinding;
 import com.allinone.app.expense.Expense;
@@ -43,6 +54,16 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
     private ExpenseDb db;
     private ExpenseAdapter adapter;
     private final List<Expense> expenses = new ArrayList<>();
+
+    private final ActivityResultLauncher<String> exportLauncher =
+        registerForActivityResult(new ActivityResultContracts.CreateDocument("text/csv"), uri -> {
+            if (uri != null) exportToCsv(uri);
+        });
+
+    private final ActivityResultLauncher<String> importLauncher =
+        registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri != null) importFromCsv(uri);
+        });
 
     private static final String PREFS_NAME = "expense_prefs";
     private static final String KEY_BUDGET = "budget";
@@ -82,6 +103,12 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
 
         db = new ExpenseDb(this);
         binding.btnBack.setOnClickListener(v -> finish());
+        binding.btnExport.setOnClickListener(v -> {
+            String name = "expenses_" + new java.text.SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                .format(new java.util.Date()) + ".csv";
+            exportLauncher.launch(name);
+        });
+        binding.btnImport.setOnClickListener(v -> importLauncher.launch("text/*"));
         setupRecyclerView();
         setupTabs();
         setupNav();
@@ -355,6 +382,83 @@ public class ExpenseTrackerActivity extends AppCompatActivity {
                 updateBalanceViews(db.sumAmount(range[0], range[1]));
             })
             .show();
+    }
+
+    // ── Export / Import ──────────────────────────────────────────────────────
+    private void exportToCsv(Uri uri) {
+        List<Expense> all = db.queryAll();
+        try (OutputStream os = getContentResolver().openOutputStream(uri);
+             OutputStreamWriter w = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+            w.write("category,amount,note,date_ms\n");
+            for (Expense e : all) {
+                w.write(csvEscape(e.category) + "," +
+                        e.amount + "," +
+                        csvEscape(e.note) + "," +
+                        e.dateMillis + "\n");
+            }
+            Toast.makeText(this, "Exported " + all.size() + " expenses", Toast.LENGTH_SHORT).show();
+        } catch (IOException ex) {
+            Toast.makeText(this, "Export failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void importFromCsv(Uri uri) {
+        try (InputStream is = getContentResolver().openInputStream(uri);
+             BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String line = r.readLine(); // skip header
+            if (line == null) { Toast.makeText(this, "File is empty", Toast.LENGTH_SHORT).show(); return; }
+            int count = 0;
+            while ((line = r.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] cols = parseCsvLine(line);
+                if (cols.length < 4) continue;
+                try {
+                    Expense e = new Expense();
+                    e.category   = cols[0];
+                    e.amount     = Double.parseDouble(cols[1]);
+                    e.note       = cols[2];
+                    e.dateMillis = Long.parseLong(cols[3]);
+                    db.insert(e);
+                    count++;
+                } catch (NumberFormatException ignored) {}
+            }
+            load();
+            Toast.makeText(this, "Imported " + count + " expenses", Toast.LENGTH_SHORT).show();
+        } catch (IOException ex) {
+            Toast.makeText(this, "Import failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private String csvEscape(String s) {
+        if (s == null) return "";
+        if (s.contains(",") || s.contains("\"") || s.contains("\n")) {
+            return "\"" + s.replace("\"", "\"\"") + "\"";
+        }
+        return s;
+    }
+
+    private String[] parseCsvLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"' && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    sb.append('"'); i++;
+                } else if (c == '"') {
+                    inQuotes = false;
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                if (c == '"') { inQuotes = true; }
+                else if (c == ',') { fields.add(sb.toString()); sb.setLength(0); }
+                else { sb.append(c); }
+            }
+        }
+        fields.add(sb.toString());
+        return fields.toArray(new String[0]);
     }
 
     private int dp(int dp) {

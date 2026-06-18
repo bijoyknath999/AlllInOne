@@ -12,9 +12,10 @@ public class ReminderScheduler {
         long nextFire;
         if (r.intervalType == Reminder.TYPE_ONCE) {
             nextFire = r.nextFireMs;
-            if (nextFire <= System.currentTimeMillis()) return; // already past
+            if (nextFire <= System.currentTimeMillis()) return;
         } else {
-            nextFire = System.currentTimeMillis() + r.intervalMs;
+            // Compute next fire anchored to fireHour:fireMinute — fixes drift after reboot
+            nextFire = r.computeNextFireMs();
             new ReminderDb(ctx).updateNextFire(r.id, nextFire);
         }
 

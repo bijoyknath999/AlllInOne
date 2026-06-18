@@ -12,7 +12,7 @@ public class ReminderBootReceiver extends BroadcastReceiver {
     public void onReceive(Context ctx, Intent intent) {
         if (!Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
 
-        ReminderReceiver.createChannel(ctx);
+        ReminderReceiver.createChannels(ctx);
 
         List<Reminder> reminders = new ReminderDb(ctx).getEnabled();
         for (Reminder r : reminders) {

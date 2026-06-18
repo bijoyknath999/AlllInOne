@@ -70,6 +70,14 @@ public class ExpenseDb extends SQLiteOpenHelper {
         return sum;
     }
 
+    public List<Expense> queryAll() {
+        List<Expense> list = new ArrayList<>();
+        Cursor c = getReadableDatabase().query(TABLE, null, null, null, null, null, "date_ms ASC");
+        while (c.moveToNext()) list.add(fromCursor(c));
+        c.close();
+        return list;
+    }
+
     private Expense fromCursor(Cursor c) {
         return new Expense(
             c.getLong(c.getColumnIndexOrThrow("id")),
