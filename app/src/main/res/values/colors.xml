@@ -37,6 +37,10 @@
     <color name="cat_entertainment">#0097A7</color>
     <color name="cat_other">#607D8B</color>
 
+    <!-- Money manager -->
+    <color name="income_green">#4CAF50</color>
+    <color name="expense_red">#E53935</color>
+
     <!-- Gradient -->
     <color name="gradient_start">#1A0A0A</color>
     <color name="gradient_end">#090912</color>

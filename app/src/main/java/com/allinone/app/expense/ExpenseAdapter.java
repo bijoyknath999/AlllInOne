@@ -1,6 +1,7 @@
 package com.allinone.app.expense;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -12,18 +13,28 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.VH> {
 
     private final List<Expense> items;
-    private final OnDeleteListener listener;
+    private final String currency;
+    private final Map<String, Integer> categoryColors;
+    private final Map<Long, String> accountNames;
+    private final Listener listener;
 
-    public interface OnDeleteListener {
+    public interface Listener {
+        void onEdit(Expense e);
         void onDelete(Expense e);
     }
 
-    public ExpenseAdapter(List<Expense> items, OnDeleteListener listener) {
+    public ExpenseAdapter(List<Expense> items, String currency,
+                          Map<String, Integer> categoryColors,
+                          Map<Long, String> accountNames, Listener listener) {
         this.items = items;
+        this.currency = currency;
+        this.categoryColors = categoryColors;
+        this.accountNames = accountNames;
         this.listener = listener;
     }
 
@@ -37,34 +48,53 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.VH> {
     @Override
     public void onBindViewHolder(@NonNull VH h, int pos) {
         Expense e = items.get(pos);
-        h.b.tvCategory.setText(e.category);
-        h.b.tvAmount.setText(String.format(Locale.getDefault(), "- $%.2f", e.amount));
-        h.b.tvNote.setText(e.note != null && !e.note.isEmpty() ? e.note : "");
-        h.b.tvNote.setVisibility(
-            e.note != null && !e.note.isEmpty()
-                ? android.view.View.VISIBLE
-                : android.view.View.GONE);
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
         h.b.tvDate.setText(sdf.format(new Date(e.dateMillis)));
-        int color = categoryColor(h.b.getRoot().getContext(), e.category);
-        h.b.tvCategory.setBackgroundColor(color);
+
+        if (e.isTransfer()) {
+            h.b.tvCategory.setText("Transfer");
+            h.b.tvCategory.setBackground(pill(h.b.getRoot().getContext(), 0xFF455A64));
+            String from = accountNames.get(e.accountId);
+            String to = accountNames.get(e.toAccountId);
+            String flow = (from == null ? "?" : from) + " → " + (to == null ? "?" : to);
+            h.b.tvNote.setText(flow);
+            h.b.tvNote.setVisibility(View.VISIBLE);
+            h.b.tvAmount.setText(currency + String.format(Locale.getDefault(), "%,.2f", e.amount));
+            h.b.tvAmount.setTextColor(0xFFB0B0C8);
+        } else {
+            String cat = e.category == null ? "Other" : e.category;
+            h.b.tvCategory.setText(cat);
+            h.b.tvCategory.setBackground(pill(h.b.getRoot().getContext(), colorFor(cat)));
+            boolean hasNote = e.note != null && !e.note.isEmpty();
+            h.b.tvNote.setText(hasNote ? e.note : "");
+            h.b.tvNote.setVisibility(hasNote ? View.VISIBLE : View.GONE);
+            if (e.isIncome()) {
+                h.b.tvAmount.setText("+ " + currency + String.format(Locale.getDefault(), "%,.2f", e.amount));
+                h.b.tvAmount.setTextColor(0xFF4CAF50);
+            } else {
+                h.b.tvAmount.setText("- " + currency + String.format(Locale.getDefault(), "%,.2f", e.amount));
+                h.b.tvAmount.setTextColor(0xFFE53935);
+            }
+        }
+
         h.b.btnDelete.setOnClickListener(v -> listener.onDelete(e));
+        h.b.getRoot().setOnClickListener(v -> listener.onEdit(e));
     }
 
     @Override
     public int getItemCount() { return items.size(); }
 
-    private int categoryColor(android.content.Context ctx, String cat) {
-        if (cat == null) return 0xFF607D8B;
-        switch (cat) {
-            case "Food":          return 0xFF388E3C;
-            case "Transport":     return 0xFF1976D2;
-            case "Shopping":      return 0xFFF57C00;
-            case "Bills":         return 0xFFE53935;
-            case "Health":        return 0xFF7B1FA2;
-            case "Entertainment": return 0xFF0097A7;
-            default:              return 0xFF607D8B;
-        }
+    private int colorFor(String cat) {
+        Integer c = categoryColors.get(cat);
+        return c != null ? c : 0xFF607D8B;
+    }
+
+    /** A rounded pill background for the category / type badge. */
+    private android.graphics.drawable.GradientDrawable pill(android.content.Context ctx, int color) {
+        android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
+        d.setColor(color);
+        d.setCornerRadius(ctx.getResources().getDisplayMetrics().density * 20);
+        return d;
     }
 
     static class VH extends RecyclerView.ViewHolder {

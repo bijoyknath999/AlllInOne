@@ -21,6 +21,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.VH> {
     public interface Listener {
         void onToggle(Reminder r, boolean enabled);
         void onDelete(Reminder r);
+        void onEdit(Reminder r);
     }
 
     public ReminderAdapter(List<Reminder> items, Listener listener) {
@@ -41,17 +42,23 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.VH> {
         h.b.tvTitle.setText(r.title);
         h.b.tvInterval.setText(r.intervalLabel());
 
-        if (r.nextFireMs > System.currentTimeMillis()) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault());
-            h.b.tvNextFire.setText("Next: " + sdf.format(new Date(r.nextFireMs)));
+        long now = System.currentTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE, MMM dd yyyy · h:mm a", Locale.getDefault());
+        if (!r.enabled) {
+            h.b.tvNextFire.setText("Disabled");
+        } else if (r.intervalType == Reminder.TYPE_ONCE && r.nextFireMs <= now) {
+            h.b.tvNextFire.setText("Completed");
         } else {
-            h.b.tvNextFire.setText(r.enabled ? "Pending…" : "Disabled");
+            // Always show the exact next fire date & time (compute it for recurring if needed)
+            long next = r.nextFireMs > now ? r.nextFireMs : r.computeNextFireMs();
+            h.b.tvNextFire.setText("Next: " + sdf.format(new Date(next)));
         }
 
         h.b.switchEnabled.setOnCheckedChangeListener(null);
         h.b.switchEnabled.setChecked(r.enabled);
         h.b.switchEnabled.setOnCheckedChangeListener((btn, checked) -> listener.onToggle(r, checked));
         h.b.btnDelete.setOnClickListener(v -> listener.onDelete(r));
+        h.b.getRoot().setOnClickListener(v -> listener.onEdit(r));
     }
 
     @Override

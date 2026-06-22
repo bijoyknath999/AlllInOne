@@ -25,7 +25,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:paddingTop="16dp"
-                android:paddingBottom="16dp">
+                android:paddingBottom="12dp">
 
                 <ImageView
                     android:id="@+id/btn_back"
@@ -43,16 +43,16 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="Expense Tracker"
+                    android:text="Money Manager"
                     android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <ImageView
-                    android:id="@+id/btn_import"
+                    android:id="@+id/btn_reports"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_folder_open"
+                    android:src="@drawable/ic_chart"
                     android:contentDescription="@null"
                     android:padding="8dp"
                     android:clickable="true"
@@ -60,16 +60,31 @@
                     android:foreground="?attr/selectableItemBackgroundBorderless" />
 
                 <ImageView
-                    android:id="@+id/btn_export"
+                    android:id="@+id/btn_menu"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_share"
+                    android:src="@drawable/ic_more_vert"
                     android:contentDescription="@null"
                     android:padding="8dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackgroundBorderless" />
             </LinearLayout>
+
+            <!-- Account selector chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="14dp">
+
+                <LinearLayout
+                    android:id="@+id/ll_accounts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="2dp" />
+            </HorizontalScrollView>
 
             <!-- Summary Card -->
             <androidx.cardview.widget.CardView
@@ -129,30 +144,98 @@
                             android:foreground="?attr/selectableItemBackgroundBorderless" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tv_total"
-                        android:layout_width="wrap_content"
+                    <!-- Income / Expense / Net -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="$0.00"
-                        android:textColor="@color/color_primary"
-                        android:textSize="36sp"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:layout_marginTop="14dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="INCOME"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:letterSpacing="0.10" />
+                            <TextView
+                                android:id="@+id/tv_income"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="$0.00"
+                                android:textColor="@color/income_green"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="EXPENSE"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:letterSpacing="0.10" />
+                            <TextView
+                                android:id="@+id/tv_expense"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="$0.00"
+                                android:textColor="@color/color_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="end">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="NET"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="10sp"
+                                android:letterSpacing="0.10" />
+                            <TextView
+                                android:id="@+id/tv_net"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3dp"
+                                android:text="$0.00"
+                                android:textColor="@color/text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tv_expense_count"
+                        android:id="@+id/tv_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="8dp"
                         android:text="0 transactions"
                         android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
+                        android:textSize="12sp" />
 
                     <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="14dp"
                         android:layout_marginBottom="14dp"
                         android:background="#22FFFFFF" />
 
@@ -162,7 +245,6 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
-                        <!-- Budget (tappable) -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -175,10 +257,10 @@
                                 android:text="BUDGET"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="10sp"
-                                android:textAllCaps="true"
                                 android:letterSpacing="0.12" />
 
                             <LinearLayout
+                                android:id="@+id/ll_budget_tap"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
@@ -186,7 +268,6 @@
                                 android:layout_marginTop="4dp"
                                 android:clickable="true"
                                 android:focusable="true"
-                                android:id="@+id/ll_budget_tap"
                                 android:foreground="?attr/selectableItemBackgroundBorderless">
 
                                 <TextView
@@ -208,7 +289,6 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Left balance -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -222,7 +302,6 @@
                                 android:text="LEFT"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="10sp"
-                                android:textAllCaps="true"
                                 android:letterSpacing="0.12" />
 
                             <TextView
@@ -300,7 +379,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="14dp"
+                android:layout_marginBottom="12dp"
                 android:visibility="gone">
 
                 <LinearLayout
@@ -316,7 +395,6 @@
                         android:text="FROM"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp"
-                        android:textAllCaps="true"
                         android:letterSpacing="0.12"
                         android:layout_marginBottom="5dp" />
 
@@ -349,7 +427,6 @@
                         android:text="TO"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp"
-                        android:textAllCaps="true"
                         android:letterSpacing="0.12"
                         android:layout_marginBottom="5dp" />
 
@@ -370,14 +447,30 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Search -->
+            <EditText
+                android:id="@+id/et_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Search notes or category"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="13sp"
+                android:background="@drawable/bg_input_field"
+                android:padding="11dp"
+                android:layout_marginBottom="12dp"
+                android:inputType="text"
+                android:maxLines="1"
+                android:imeOptions="actionSearch" />
+
             <!-- Empty state -->
             <TextView
                 android:id="@+id/tv_empty_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
+                android:layout_marginTop="40dp"
                 android:gravity="center"
-                android:text="No expenses in this period.\nTap + to add one."
+                android:text="No transactions in this period.\nTap + to add one."
                 android:textColor="@color/text_hint"
                 android:textSize="15sp"
                 android:lineSpacingExtra="4dp"
@@ -389,7 +482,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                android:clipToPadding="false" />
+                android:clipToPadding="false"
+                android:layoutAnimation="@anim/layout_anim_slide_up" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

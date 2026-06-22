@@ -94,7 +94,7 @@ public class ReminderActivity extends AppCompatActivity {
 
         binding.btnBack.setOnClickListener(v -> finish());
         setupRecyclerView();
-        binding.fabAdd.setOnClickListener(v -> showAddDialog());
+        binding.fabAdd.setOnClickListener(v -> showAddDialog(null));
         load();
         animateIn();
     }
@@ -127,6 +127,11 @@ public class ReminderActivity extends AppCompatActivity {
                     .setNegativeButton("Cancel", null)
                     .show();
             }
+
+            @Override
+            public void onEdit(Reminder r) {
+                showAddDialog(r);
+            }
         });
         binding.rvReminders.setLayoutManager(new LinearLayoutManager(this));
         binding.rvReminders.setAdapter(adapter);
@@ -139,8 +144,9 @@ public class ReminderActivity extends AppCompatActivity {
         binding.tvEmptyHint.setVisibility(reminders.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    private void showAddDialog() {
-        pendingImageUri = null;
+    private void showAddDialog(final Reminder existing) {
+        pendingImageUri = (existing != null && existing.imageUri != null)
+            ? Uri.parse(existing.imageUri) : null;
 
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_reminder, null);
 
@@ -205,6 +211,43 @@ public class ReminderActivity extends AppCompatActivity {
             tvTimeRecur.setText(t12Fmt.format(c.getTime()));
         }, recurHour[0], recurMinute[0], false).show());
 
+        // Initial recurring time label
+        {
+            Calendar rc = Calendar.getInstance();
+            rc.set(Calendar.HOUR_OF_DAY, recurHour[0]);
+            rc.set(Calendar.MINUTE, recurMinute[0]);
+            tvTimeRecur.setText(t12Fmt.format(rc.getTime()));
+        }
+
+        // Prefill fields when editing an existing reminder
+        if (existing != null) {
+            etTitle.setText(existing.title);
+            etMessage.setText(existing.message);
+            cbSound.setChecked(existing.sound);
+            cbVibrate.setChecked(existing.vibrate);
+            if (existing.intervalType == Reminder.TYPE_ONCE && existing.nextFireMs > 0) {
+                selectedDateTime.setTimeInMillis(existing.nextFireMs);
+                tvDateOnce.setText(dateFmt.format(selectedDateTime.getTime()));
+                tvTimeOnce.setText(timeFmt.format(selectedDateTime.getTime()));
+            }
+            if (existing.intervalType == Reminder.TYPE_MINUTES) {
+                etMinutes.setText(String.valueOf(existing.intervalValue));
+            }
+            recurHour[0]   = existing.fireHour;
+            recurMinute[0] = existing.fireMinute;
+            Calendar rc2 = Calendar.getInstance();
+            rc2.set(Calendar.HOUR_OF_DAY, recurHour[0]);
+            rc2.set(Calendar.MINUTE, recurMinute[0]);
+            tvTimeRecur.setText(t12Fmt.format(rc2.getTime()));
+            if (existing.imageUri != null && dialogImgPreview != null) {
+                dialogImgPreview.setImageURI(Uri.parse(existing.imageUri));
+                dialogImgPreview.setVisibility(View.VISIBLE);
+                dialogImgName.setText("Image selected");
+                dialogImgName.setTextColor(getResources().getColor(R.color.text_primary, null));
+                dialogImgRemove.setVisibility(View.VISIBLE);
+            }
+        }
+
         // Visibility logic
         rgInterval.setOnCheckedChangeListener((g, id) -> {
             boolean isOnce    = id == R.id.rb_once;
@@ -216,8 +259,8 @@ public class ReminderActivity extends AppCompatActivity {
             etMinutes.setVisibility( isMinutes ? View.VISIBLE : View.GONE);
             llTimeRecur.setVisibility(isRecur  ? View.VISIBLE : View.GONE);
         });
-        // Default: daily → show time picker
-        rgInterval.check(R.id.rb_daily);
+        // Select interval (existing type when editing, else daily)
+        rgInterval.check(radioIdForType(existing != null ? existing.intervalType : Reminder.TYPE_DAILY));
 
         // Image picker
         btnPickImage.setOnClickListener(v -> imagePicker.launch("image/*"));
@@ -230,13 +273,14 @@ public class ReminderActivity extends AppCompatActivity {
         });
 
         new AlertDialog.Builder(this)
+            .setTitle(existing == null ? "New Reminder" : "Edit Reminder")
             .setView(view)
             .setOnDismissListener(d -> {
                 dialogImgPreview = null;
                 dialogImgName    = null;
                 dialogImgRemove  = null;
             })
-            .setPositiveButton("Add", (d, w) -> {
+            .setPositiveButton(existing == null ? "Add" : "Save", (d, w) -> {
                 String title = etTitle.getText().toString().trim();
                 if (title.isEmpty()) {
                     Toast.makeText(this, "Enter a title", Toast.LENGTH_SHORT).show();
@@ -270,13 +314,13 @@ public class ReminderActivity extends AppCompatActivity {
                     intervalType = Reminder.TYPE_DAILY;
                 }
 
-                Reminder r = new Reminder();
+                Reminder r = existing != null ? existing : new Reminder();
                 r.title        = title;
                 r.message      = etMessage.getText().toString().trim();
                 r.intervalType = intervalType;
                 r.intervalValue= intervalValue;
                 r.intervalMs   = Reminder.computeIntervalMs(intervalType, intervalValue);
-                r.enabled      = true;
+                if (existing == null) r.enabled = true; // editing keeps current enabled state
                 r.sound        = cbSound.isChecked();
                 r.vibrate      = cbVibrate.isChecked();
                 r.imageUri     = pendingImageUri != null ? pendingImageUri.toString() : null;
@@ -292,19 +336,40 @@ public class ReminderActivity extends AppCompatActivity {
                 } else {
                     r.fireHour   = recurHour[0];
                     r.fireMinute = recurMinute[0];
-                    r.nextFireMs = 0; // scheduler will compute via computeNextFireMs
+                    r.nextFireMs = 0; // reset → recompute the next fire time from now
                 }
 
-                long newId = db.insert(r);
-                r.id = newId;
+                if (existing == null) {
+                    r.id = db.insert(r);
+                } else {
+                    // Reset the schedule: cancel the old alarm, save edits, then reschedule
+                    ReminderScheduler.cancel(this, r);
+                    db.update(r);
+                }
 
-                checkExactAlarmPermission();
-                ReminderScheduler.schedule(this, r);
+                if (r.enabled) {
+                    checkExactAlarmPermission();
+                    ReminderScheduler.schedule(this, r);
+                }
                 load();
-                Toast.makeText(this, "Reminder set: " + r.intervalLabel(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,
+                    (existing == null ? "Reminder set: " : "Reminder updated: ") + r.intervalLabel(),
+                    Toast.LENGTH_SHORT).show();
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    private int radioIdForType(int type) {
+        switch (type) {
+            case Reminder.TYPE_ONCE:     return R.id.rb_once;
+            case Reminder.TYPE_MINUTES:  return R.id.rb_minutes;
+            case Reminder.TYPE_HOURLY:   return R.id.rb_hourly;
+            case Reminder.TYPE_WEEKLY:   return R.id.rb_weekly;
+            case Reminder.TYPE_BIWEEKLY: return R.id.rb_biweekly;
+            case Reminder.TYPE_MONTHLY:  return R.id.rb_monthly;
+            default:                     return R.id.rb_daily;
+        }
     }
 
     private void checkExactAlarmPermission() {

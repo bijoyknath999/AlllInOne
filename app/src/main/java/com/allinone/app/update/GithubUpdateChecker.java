@@ -55,16 +55,20 @@ public class GithubUpdateChecker {
 
                 JSONObject json = new JSONObject(sb.toString());
                 String tagName = json.optString("tag_name", "");
-                String releaseName = json.optString("name", tagName);
+                String releaseName = json.optString("name", "");
                 String changelog = json.optString("body", "");
                 String apkUrl = findApkUrl(json);
 
                 String currentVersion = currentVersion(activity);
                 if (!isNewer(tagName, currentVersion)) return;
 
+                // Prefer the tag (the real semantic version, e.g. 1.7) over the release
+                // "name" field, which is often a short label like "v1".
+                String versionLabel = normalizeVersion(!tagName.isEmpty() ? tagName : releaseName);
+
                 main.post(() -> {
                     if (activity.isFinishing()) return;
-                    showDialog(activity, releaseName, changelog, apkUrl);
+                    showDialog(activity, versionLabel, changelog, apkUrl);
                 });
 
             } catch (Exception ignored) {}
@@ -87,7 +91,8 @@ public class GithubUpdateChecker {
     }
 
     private static void showDialog(Activity activity, String version, String changelog, String apkUrl) {
-        String msg = "Version " + version + " is available.\n\n" +
+        String appName = appName(activity);
+        String msg = appName + " " + version + " is available.\n\n" +
             (changelog.isEmpty() ? "" : changelog.substring(0, Math.min(changelog.length(), 400)));
 
         AlertDialog.Builder b = new AlertDialog.Builder(activity);
@@ -107,11 +112,16 @@ public class GithubUpdateChecker {
     }
 
     private static void downloadAndInstall(Activity activity, String apkUrl, String version) {
+        String appName = appName(activity);
+        // Versioned, human-readable filename saved to the public Downloads folder so the
+        // APK persists and is easy to find: e.g. "AllinOne-v1.7.apk".
+        String fileName = appName.replaceAll("\\s+", "") + "-" + version + ".apk";
+
         DownloadManager.Request req = new DownloadManager.Request(Uri.parse(apkUrl));
-        req.setTitle("Downloading update " + version);
-        req.setDescription("AllinOne update");
+        req.setTitle(appName + " " + version);
+        req.setDescription("Downloading update " + version);
         req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        req.setDestinationInExternalFilesDir(activity, Environment.DIRECTORY_DOWNLOADS, "allinone-update.apk");
+        req.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
         req.setMimeType("application/vnd.android.package-archive");
 
         DownloadManager dm = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -139,6 +149,22 @@ public class GithubUpdateChecker {
         } else {
             activity.registerReceiver(onComplete, filter);
         }
+    }
+
+    private static String appName(Context ctx) {
+        try {
+            return ctx.getApplicationInfo().loadLabel(ctx.getPackageManager()).toString();
+        } catch (Exception e) {
+            return "AllinOne";
+        }
+    }
+
+    /** Ensures the version reads like "v1.7" regardless of how the tag was written. */
+    private static String normalizeVersion(String v) {
+        if (v == null) return "";
+        v = v.trim();
+        if (v.isEmpty()) return v;
+        return (v.charAt(0) == 'v' || v.charAt(0) == 'V') ? v : "v" + v;
     }
 
     private static String currentVersion(Context ctx) {
