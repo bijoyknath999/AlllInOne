@@ -24,6 +24,10 @@
     <string name="tool_reminder_title">Reminders</string>
     <string name="tool_reminder_desc">Set recurring alerts — works when app is closed</string>
 
+    <!-- Study Focus -->
+    <string name="tool_study_title">Study Focus</string>
+    <string name="tool_study_desc">Daily chapter goals, streaks &amp; focus timer</string>
+
     <!-- YT Downloader -->
     <string name="yt_title">YT Downloader</string>
     <string name="yt_url_hint">Paste YouTube URL here…</string>

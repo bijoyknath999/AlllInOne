@@ -44,4 +44,11 @@
     <!-- Gradient -->
     <color name="gradient_start">#1A0A0A</color>
     <color name="gradient_end">#090912</color>
+
+    <!-- Study Focus module -->
+    <color name="study_accent">#6C63FF</color>
+    <color name="study_accent_dark">#4A42D6</color>
+    <color name="study_accent_dim">#171630</color>
+    <color name="study_teal">#00BFA6</color>
+    <color name="streak_flame">#FF9800</color>
 </resources>

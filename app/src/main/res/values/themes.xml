@@ -21,4 +21,16 @@
     <style name="Theme.AllInOne.Splash" parent="Base.Theme.AllInOne">
         <item name="android:windowBackground">@color/bg_dark</item>
     </style>
+
+    <!-- Study Focus dialog field label -->
+    <style name="StudyFieldLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
 </resources>
