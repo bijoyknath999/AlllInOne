@@ -50,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_up_fade_in, android.R.anim.fade_out);
         });
 
+        binding.cardFbDownloader.setOnClickListener(v -> {
+            Intent intent = new Intent(this, FbDownloaderActivity.class);
+            startActivity(intent);
+            overridePendingTransition(R.anim.slide_up_fade_in, android.R.anim.fade_out);
+        });
+
         binding.cardDownloadManager.setOnClickListener(v -> {
             Intent intent = new Intent(this, DownloadManagerActivity.class);
             startActivity(intent);
@@ -83,20 +89,24 @@ public class MainActivity extends AppCompatActivity {
         binding.cardYtDownloader.startAnimation(cardAnim1);
 
         Animation cardAnim2 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
-        cardAnim2.setStartOffset(350);
-        binding.cardDownloadManager.startAnimation(cardAnim2);
+        cardAnim2.setStartOffset(330);
+        binding.cardFbDownloader.startAnimation(cardAnim2);
 
         Animation cardAnim3 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
-        cardAnim3.setStartOffset(430);
-        binding.cardExpenseTracker.startAnimation(cardAnim3);
+        cardAnim3.setStartOffset(410);
+        binding.cardDownloadManager.startAnimation(cardAnim3);
 
         Animation cardAnim4 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
-        cardAnim4.setStartOffset(510);
-        binding.cardReminder.startAnimation(cardAnim4);
+        cardAnim4.setStartOffset(490);
+        binding.cardExpenseTracker.startAnimation(cardAnim4);
 
         Animation cardAnim5 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
-        cardAnim5.setStartOffset(590);
-        binding.cardStudyFocus.startAnimation(cardAnim5);
+        cardAnim5.setStartOffset(570);
+        binding.cardReminder.startAnimation(cardAnim5);
+
+        Animation cardAnim6 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
+        cardAnim6.setStartOffset(650);
+        binding.cardStudyFocus.startAnimation(cardAnim6);
 
     }
 }

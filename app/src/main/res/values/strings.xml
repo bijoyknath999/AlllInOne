@@ -7,6 +7,8 @@
     <string name="home_tools_label">Tools</string>
     <string name="tool_yt_title">YT Downloader</string>
     <string name="tool_yt_desc">Download YouTube videos &amp; audio</string>
+    <string name="tool_fb_title">FB Downloader</string>
+    <string name="tool_fb_desc">Download Facebook videos — public or private</string>
 
     <!-- Download Manager -->
     <string name="tool_dm_title">Download Manager</string>
@@ -46,4 +48,58 @@
     <string name="yt_error_invalid_url">Please enter a valid YouTube URL</string>
     <string name="yt_initializing">Initializing yt-dlp engine…</string>
     <string name="yt_saved_to">Saved to: </string>
+
+    <!-- FB Downloader -->
+    <string name="fb_title">FB Downloader</string>
+    <string name="fb_url_label">Facebook video URL</string>
+    <string name="fb_url_hint">Paste Facebook video URL here…</string>
+    <string name="fb_btn_get_video">Get Video</string>
+    <string name="fb_btn_browse">Browse Facebook &amp; pick a video</string>
+    <string name="fb_error_empty_url">Please enter a Facebook video URL</string>
+    <string name="fb_error_invalid_url">Please enter a valid Facebook video URL</string>
+
+    <!-- FB account card -->
+    <string name="fb_account_logged_in">Logged in to Facebook</string>
+    <string name="fb_account_logged_in_hint">Private, group and friends-only videos are available.</string>
+    <string name="fb_account_logged_out">Not logged in</string>
+    <string name="fb_account_logged_out_hint">Public videos work as-is. Log in to download private or group videos.</string>
+    <string name="fb_account_login">LOGIN</string>
+    <string name="fb_account_logout">LOGOUT</string>
+    <string name="fb_logout_title">Log out of Facebook?</string>
+    <string name="fb_logout_message">Your saved session will be cleared. Private and group videos will stop working until you log in again.</string>
+    <string name="fb_logged_out">Logged out of Facebook</string>
+
+    <!-- FB in-app browser -->
+    <string name="fb_browser_title">Facebook</string>
+    <string name="fb_browser_hint">Loading…</string>
+    <string name="fb_browser_use_video">Use This Video</string>
+    <string name="fb_browser_step_login">Step 1 — log into your Facebook account below.</string>
+    <string name="fb_browser_step_open_video">Step 2 — open the video or post you want to download.</string>
+    <string name="fb_browser_step_play">Step 3 — play the video (unmute it) so the streams load, then tap below.</string>
+    <string name="fb_browser_step_captured">Ready — captured %1$d video and %2$d audio stream(s). Tap below to download.</string>
+    <string name="fb_browser_step_page_ready">Ready — found %1$d downloadable file(s) on this page. Tap below to download.</string>
+    <string name="fb_captured_tracks">Received %1$d video + %2$d audio track(s)</string>
+    <string name="fb_browser_capture">Capture Streams</string>
+    <string name="fb_browser_captured_snapshot">Captured %1$d video + %2$d audio track(s). Tap Use This Video.</string>
+    <string name="fb_browser_capture_none">No streams found yet — play the video for a few seconds, then tap Capture again.</string>
+    <string name="fb_browser_capture_ok">Captured %1$d video + %2$d audio</string>
+    <string name="fb_browser_copy_source">Copy Page Source</string>
+    <string name="fb_browser_source_fetching">Fetching page source…</string>
+    <string name="fb_browser_source_failed">Couldn\'t fetch the page source: %1$s</string>
+    <string name="fb_browser_isolating">Opening this video on its own page…</string>
+    <string name="fb_browser_isolated_ready">Ready — %1$d video + %2$d audio track(s) from this video only. Tap Use This Video.</string>
+    <string name="fb_browser_isolate_failed">Couldn\'t read this page. Play the video here, then tap Capture Streams.</string>
+    <string name="fb_browser_no_url">No page is open yet.</string>
+    <string name="fb_browser_not_video">This page doesn\'t look like a video post — the download may fail.</string>
+
+    <!-- FB private-video prompt -->
+    <string name="fb_private_title">Can\'t read this video</string>
+    <string name="fb_private_message">This video looks private or restricted. Log into your Facebook account, open the post, play the video, then tap "Use This Video".</string>
+    <string name="fb_private_message_logged_in">Facebook blocks the downloader engine from reading this video, even though your login is valid. Open the post in the in-app browser and PLAY it — the app will capture the video stream directly.</string>
+    <string name="fb_private_open_browser">Open in browser</string>
+    <string name="fb_captured_ready">Captured from your session — %1$d quality option(s) available.</string>
+    <string name="fb_captured_video_only">Only a video track was captured — the result will have no sound. Play the video with sound on, then try again.</string>
+    <string name="fb_mux_failed">Could not merge audio — saved the video track only.</string>
+    <string name="fb_copy_error">Copy details</string>
+    <string name="fb_copied">Details copied to clipboard</string>
 </resources>
