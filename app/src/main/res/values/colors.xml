@@ -45,6 +45,13 @@
     <color name="gradient_start">#1A0A0A</color>
     <color name="gradient_end">#090912</color>
 
+    <!-- Office Attendance module -->
+    <color name="att_accent">#00B0A0</color>
+    <color name="att_accent_dim">#0E2624</color>
+    <color name="att_in">#4CAF50</color>
+    <color name="att_out">#FF9800</color>
+    <color name="att_leave">#7E7BFF</color>
+
     <!-- Study Focus module -->
     <color name="study_accent">#6C63FF</color>
     <color name="study_accent_dark">#4A42D6</color>

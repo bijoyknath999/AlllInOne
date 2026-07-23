@@ -30,6 +30,29 @@
     <string name="tool_study_title">Study Focus</string>
     <string name="tool_study_desc">Daily chapter goals, streaks &amp; focus timer</string>
 
+    <!-- Office Attendance -->
+    <string name="tool_attendance_title">Office Attendance</string>
+    <string name="tool_attendance_desc">Check in/out, leave register &amp; CSV backup</string>
+
+    <string name="att_title">Office Attendance</string>
+    <string name="att_check_in">CHECK IN</string>
+    <string name="att_check_out">CHECK OUT</string>
+    <string name="att_worked">WORKED</string>
+    <string name="att_btn_check_in">Check In</string>
+    <string name="att_btn_check_out">Check Out</string>
+    <string name="att_btn_done">Day complete</string>
+    <string name="att_state_not_in">Not checked in</string>
+    <string name="att_state_in">At the office</string>
+    <string name="att_state_done">Checked out</string>
+    <string name="att_state_leave">On leave today</string>
+    <string name="att_fix_today">Edit today\'s times</string>
+    <string name="att_leave_button">Leave</string>
+    <string name="att_backup_button">Backup</string>
+    <string name="att_empty">No days recorded this month.\nTap Check In when you reach the office, or + to add a day you missed.</string>
+
+    <string name="att_leave_title">Leave Management</string>
+    <string name="att_leave_empty">No leave recorded yet.\nTap + to add one.</string>
+
     <!-- YT Downloader -->
     <string name="yt_title">YT Downloader</string>
     <string name="yt_url_hint">Paste YouTube URL here…</string>
@@ -79,13 +102,11 @@
     <string name="fb_browser_step_captured">Ready — captured %1$d video and %2$d audio stream(s). Tap below to download.</string>
     <string name="fb_browser_step_page_ready">Ready — found %1$d downloadable file(s) on this page. Tap below to download.</string>
     <string name="fb_captured_tracks">Received %1$d video + %2$d audio track(s)</string>
+    <string name="fb_captured_muxed">Received %1$d quality option(s) — audio included</string>
     <string name="fb_browser_capture">Capture Streams</string>
     <string name="fb_browser_captured_snapshot">Captured %1$d video + %2$d audio track(s). Tap Use This Video.</string>
     <string name="fb_browser_capture_none">No streams found yet — play the video for a few seconds, then tap Capture again.</string>
     <string name="fb_browser_capture_ok">Captured %1$d video + %2$d audio</string>
-    <string name="fb_browser_copy_source">Copy Page Source</string>
-    <string name="fb_browser_source_fetching">Fetching page source…</string>
-    <string name="fb_browser_source_failed">Couldn\'t fetch the page source: %1$s</string>
     <string name="fb_browser_isolating">Opening this video on its own page…</string>
     <string name="fb_browser_isolated_ready">Ready — %1$d video + %2$d audio track(s) from this video only. Tap Use This Video.</string>
     <string name="fb_browser_isolate_failed">Couldn\'t read this page. Play the video here, then tap Capture Streams.</string>

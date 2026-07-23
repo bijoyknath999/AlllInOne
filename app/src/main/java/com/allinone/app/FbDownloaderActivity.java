@@ -427,11 +427,20 @@ public class FbDownloaderActivity extends AppCompatActivity {
             if (s.isAudio) gotAudio++; else gotVideo++;
         }
         android.util.Log.i("FbDl", "received " + gotVideo + " video + " + gotAudio
-                + " audio track(s) from browser");
+                + " audio track(s) from browser, allMuxed=" + allMuxed);
 
-        binding.tvVideoTitle.setText(!allMuxed && bestAudioStream() == null
-                ? getString(R.string.fb_captured_video_only)
-                : getString(R.string.fb_captured_tracks, gotVideo, gotAudio));
+        // A progressive file has no separate audio track to count, so the raw tally reads
+        // "0 audio" on exactly the case that needs no merging and is guaranteed to have
+        // sound. Reporting that number here says "broken" about the best possible outcome.
+        String summary;
+        if (allMuxed) {
+            summary = getString(R.string.fb_captured_muxed, gotVideo);
+        } else if (bestAudioStream() == null) {
+            summary = getString(R.string.fb_captured_video_only);
+        } else {
+            summary = getString(R.string.fb_captured_tracks, gotVideo, gotAudio);
+        }
+        binding.tvVideoTitle.setText(summary);
         binding.llVideoInfo.setVisibility(View.VISIBLE);
         binding.ivThumbnail.setVisibility(View.GONE);
 

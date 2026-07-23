@@ -117,26 +117,6 @@
             android:lineSpacingMultiplier="1.25" />
 
         <LinearLayout
-            android:id="@+id/btn_copy_source"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="10dp"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:clickable="true"
-            android:focusable="true">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/fb_browser_copy_source"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:letterSpacing="0.04" />
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/btn_capture"
             android:layout_width="match_parent"
             android:layout_height="48dp"

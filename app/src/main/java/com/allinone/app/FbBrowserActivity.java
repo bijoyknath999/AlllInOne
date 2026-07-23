@@ -29,9 +29,6 @@ import com.allinone.app.fb.FbHtmlExtractor;
 import com.allinone.app.fb.FbPageFetcher;
 import com.allinone.app.fb.FbStream;
 
-import android.net.Uri;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -278,7 +275,6 @@ public class FbBrowserActivity extends AppCompatActivity {
             binding.webviewFb.loadUrl(HOME_URL);
         });
         binding.btnCapture.setOnClickListener(v -> captureNow());
-        binding.btnCopySource.setOnClickListener(v -> copyPageSource());
 
         binding.btnUseVideo.setOnClickListener(v -> {
             // A snapshot is what the user explicitly froze — send it as-is.
@@ -434,106 +430,6 @@ public class FbBrowserActivity extends AppCompatActivity {
                 done.run();
             });
         });
-    }
-
-    /**
-     * Fetches the served HTML and offers it up for use elsewhere.
-     *
-     * <p>Exists to settle "is our extractor wrong, or is the page missing what we need?".
-     * Handing the identical bytes to one of the paste-your-source sites answers that in one
-     * step: if they find a download link in it and we don't, the bug is ours.
-     *
-     * <p>Both copy and share are offered because a Facebook page runs to several megabytes
-     * and the clipboard travels over a Binder transaction capped near 1 MB — a big page
-     * cannot be pasted and has to go out as a file.
-     */
-    private void copyPageSource() {
-        final String url = binding.webviewFb.getUrl();
-        if (TextUtils.isEmpty(url)) {
-            Toast.makeText(this, R.string.fb_browser_no_url, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Toast.makeText(this, R.string.fb_browser_source_fetching, Toast.LENGTH_SHORT).show();
-        final String cookie = CookieManager.getInstance().getCookie(url);
-
-        io.execute(() -> {
-            String html;
-            String error = null;
-            try {
-                html = FbPageFetcher.fetch(url, cookie, DESKTOP_UA);
-            } catch (Exception e) {
-                html = null;
-                error = e.getMessage() == null ? e.toString() : e.getMessage();
-            }
-            final String result = html;
-            final String failure = error;
-            runOnUiThread(() -> {
-                if (result == null) {
-                    Toast.makeText(this, getString(R.string.fb_browser_source_failed, failure),
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    showPageSourceOptions(result);
-                }
-            });
-        });
-    }
-
-    private void showPageSourceOptions(final String html) {
-        int kb = html.length() / 1024;
-        // Rough count of what an extractor would even have to work with.
-        boolean hasProgressive = html.contains("browser_native_hd_url")
-                || html.contains("playable_url");
-        boolean hasManifest = html.contains("dash_manifest");
-
-        String summary = "Page source: " + kb + " KB\n\n"
-                + "browser_native / playable_url: " + (hasProgressive ? "present" : "ABSENT")
-                + "\ndash_manifest: " + (hasManifest ? "present" : "ABSENT");
-
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Page source")
-                .setMessage(summary)
-                .setPositiveButton("Copy", (d, w) -> copyToClipboard(html))
-                .setNeutralButton("Share as file", (d, w) -> sharePageSource(html))
-                .setNegativeButton("Close", null)
-                .show();
-    }
-
-    private void copyToClipboard(String html) {
-        try {
-            android.content.ClipboardManager cm =
-                    (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            if (cm == null) throw new IllegalStateException("no clipboard service");
-            cm.setPrimaryClip(android.content.ClipData.newPlainText("fb page source", html));
-            Toast.makeText(this, "Copied " + (html.length() / 1024) + " KB",
-                    Toast.LENGTH_SHORT).show();
-        } catch (Throwable t) {
-            // Oversized clips fail at the Binder layer; the file route always works.
-            Toast.makeText(this, "Too large for the clipboard — use Share as file",
-                    Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void sharePageSource(String html) {
-        try {
-            File dir = getExternalFilesDir(null);
-            File out = new File(dir, "fb_page_source.html");
-            try (java.io.OutputStream os = new java.io.FileOutputStream(out)) {
-                os.write(html.getBytes("UTF-8"));
-            }
-
-            Uri uri = androidx.core.content.FileProvider.getUriForFile(
-                    this, getPackageName() + ".fileprovider", out);
-
-            Intent send = new Intent(Intent.ACTION_SEND);
-            send.setType("text/html");
-            send.putExtra(Intent.EXTRA_STREAM, uri);
-            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(send, "Share page source"));
-        } catch (Exception e) {
-            Toast.makeText(this, "Couldn't save the source: " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
-        }
     }
 
     /** Freezes whatever the current sources agree on, and reports it. */

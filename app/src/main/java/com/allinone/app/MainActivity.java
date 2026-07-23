@@ -77,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_up_fade_in, android.R.anim.fade_out);
         });
 
+        binding.cardAttendance.setOnClickListener(v -> {
+            startActivity(new Intent(this, OfficeAttendanceActivity.class));
+            overridePendingTransition(R.anim.slide_up_fade_in, android.R.anim.fade_out);
+        });
+
     }
 
     private void animateContent() {
@@ -107,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
         Animation cardAnim6 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
         cardAnim6.setStartOffset(650);
         binding.cardStudyFocus.startAnimation(cardAnim6);
+
+        Animation cardAnim7 = AnimationUtils.loadAnimation(this, R.anim.slide_up_fade_in);
+        cardAnim7.setStartOffset(730);
+        binding.cardAttendance.startAnimation(cardAnim7);
 
     }
 }

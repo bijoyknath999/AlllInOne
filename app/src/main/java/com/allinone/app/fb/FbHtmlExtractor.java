@@ -123,6 +123,8 @@ public final class FbHtmlExtractor {
             }
         }
 
+        collectProgressive(html, id, seen, near, other);
+
         streams.addAll(near.isEmpty() ? other : near);
         if (!streams.isEmpty()) {
             Collections.sort(streams, (a, b) -> Integer.compare(b.height, a.height));
@@ -134,10 +136,45 @@ public final class FbHtmlExtractor {
         return streams;
     }
 
+    /**
+     * Collects {@code videoDeliveryResponseFragment}'s progressive files.
+     *
+     * <p>Current Facebook pages carry none of the {@link #KEYS} — those belong to an older
+     * payload shape. What they do carry is
+     * {@code videoDeliveryResponseResult.progressive_urls}, an array of complete MP4s with
+     * audio already interleaved. Missing them is what pushed every download onto the DASH
+     * ladder, where video and audio are separate files that then have to be merged — and on
+     * a VP9 ladder that merge is one MediaMuxer cannot perform at all.
+     *
+     * <p>Quality lives in a sibling {@code metadata.quality} rather than in the key name, so
+     * it is read from a short window after the URL.
+     */
+    private static void collectProgressive(String html, String id, Set<String> seen,
+                                           List<FbStream> near, List<FbStream> other) {
+        Matcher m = Pattern.compile("\"progressive_url\"\\s*:\\s*\"" + JSON_STR + "\"")
+                .matcher(html);
+        while (m.find()) {
+            String url = unescapeJson(m.group(1));
+            if (!url.startsWith("http") || !seen.add(url)) continue;
+
+            // The quality tag follows the URL inside the same array element; stay close
+            // enough that the next element's tag cannot be picked up by mistake.
+            int to = Math.min(html.length(), m.end() + QUALITY_WINDOW);
+            boolean hd = html.substring(m.end(), to).contains("\"quality\":\"HD\"");
+
+            FbStream s = new FbStream(url, false, hd ? HD_RANK : SD_RANK,
+                    hd ? "hd" : "sd", true);
+            (isNear(html, m.start(), id) ? near : other).add(s);
+        }
+    }
+
+    /** How far past a progressive URL its {@code metadata.quality} tag can sit. */
+    private static final int QUALITY_WINDOW = 200;
+
     /** The manifest for the target video, preferring one sitting near its id. */
     private static String findManifest(String html, String id) {
         String fallback = null;
-        for (String key : new String[]{"dash_manifest_xml_string", "dash_manifest"}) {
+        for (String key : new String[]{"manifest_xml", "dash_manifest_xml_string", "dash_manifest"}) {
             Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"" + JSON_STR + "\"")
                     .matcher(html);
             while (m.find()) {
@@ -231,9 +268,21 @@ public final class FbHtmlExtractor {
                 + "if(u.indexOf('http')!==0||seen[u])continue;seen[u]=1;"
                 + "out.push({u:u,q:K[i][1],n:near(m.index)});"
                 + "}}"
+                // videoDeliveryResponseFragment's progressive files — the shape current
+                // pages actually use. Complete MP4s with audio already in them, so finding
+                // one here avoids the DASH ladder and its unmergeable VP9 tracks entirely.
+                // Quality sits in a sibling metadata.quality, not in the key name.
+                + "var pre=new RegExp('\"progressive_url\"\\\\s*:\\\\s*\"'+STR+'\"','g'),pm;"
+                + "while((pm=pre.exec(h))!==null){"
+                + "var pu=un(pm[1]);"
+                + "if(pu.indexOf('http')!==0||seen[pu])continue;seen[pu]=1;"
+                + "var hd=h.slice(pre.lastIndex,pre.lastIndex+200)"
+                + ".indexOf('\"quality\":\"HD\"')>=0;"
+                + "out.push({u:pu,q:hd?'hd':'sd',n:near(pm.index)});"
+                + "}"
                 // The DASH manifest lists every track, audio included — the fallback when
                 // no progressive URL is present.
-                + "var MK=['dash_manifest_xml_string','dash_manifest'];"
+                + "var MK=['manifest_xml','dash_manifest_xml_string','dash_manifest'];"
                 + "for(var j=0;j<MK.length;j++){"
                 + "var mre=new RegExp('\"'+MK[j]+'\"\\\\s*:\\\\s*\"'+STR+'\"','g'),mm;"
                 + "while((mm=mre.exec(h))!==null){"

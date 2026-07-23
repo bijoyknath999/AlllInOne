@@ -276,11 +276,18 @@ public final class FbStreamDownloader {
 
         // Without this the stub cannot resolve libavcodec and friends, and exits before
         // doing any work. This is the whole reason merged downloads came out silent.
+        //
+        // The unpacked lib dir alone is not enough: its librubberband.so is linked against
+        // libc++_shared.so, which the ffmpeg artifact does not ship. We bundle that in
+        // jniLibs, so the app's own native library dir has to be on the path as well —
+        // otherwise the linker gives up on a transitive dependency and the whole fallback
+        // is dead exactly when MediaMuxer has already refused the codecs.
         Map<String, String> env = pb.environment();
+        StringBuilder path = new StringBuilder(libDir.getAbsolutePath());
+        path.append(':').append(ctx.getApplicationInfo().nativeLibraryDir);
         String existing = env.get("LD_LIBRARY_PATH");
-        env.put("LD_LIBRARY_PATH", TextUtils.isEmpty(existing)
-                ? libDir.getAbsolutePath()
-                : libDir.getAbsolutePath() + ":" + existing);
+        if (!TextUtils.isEmpty(existing)) path.append(':').append(existing);
+        env.put("LD_LIBRARY_PATH", path.toString());
 
         pb.redirectErrorStream(true);
 

@@ -63,6 +63,12 @@ android {
 packaging {
         jniLibs {
             useLegacyPackaging = true   // required by youtubedl-android
+            // youtubedl-android's ffmpeg ships librubberband.so, which is linked against
+            // libc++_shared.so but does not bundle it. Without our own copy in jniLibs the
+            // dynamic linker aborts ffmpeg before it runs ("library libc++_shared.so not
+            // found"), and every VP9 merge falls through to no fallback at all.
+            // pickFirst keeps the build green if a dependency ever ships its own.
+            pickFirsts += ['**/libc++_shared.so']
         }
         // Strip duplicate / licence files that bloat the APK
         resources {
