@@ -12,17 +12,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Money-manager database. v2 schema adds accounts, categories, people, loans,
- * loan payments and recurring rules, and upgrades the transactions table with
- * type / account columns while preserving existing rows.
+ * Expense-tracker database. v3 drops the account system: a transaction is simply
+ * money in or money out, tagged with a category. Categories, people, loans, loan
+ * payments and recurring rules are kept.
  */
 public class ExpenseDb extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "expenses.db";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
 
     private static final String T_TX        = "expenses";       // transactions
-    private static final String T_ACCOUNTS  = "accounts";
     private static final String T_CATEGORIES = "categories";
     private static final String T_PEOPLE    = "people";
     private static final String T_LOANS     = "loans";
@@ -42,19 +41,12 @@ public class ExpenseDb extends SQLiteOpenHelper {
             "category TEXT," +
             "amount REAL," +
             "note TEXT," +
-            "date_ms INTEGER," +
-            "account_id INTEGER DEFAULT 0," +
-            "to_account_id INTEGER DEFAULT 0)");
+            "date_ms INTEGER)");
         createAuxTables(db);
-        long cashId = seedDefaults(db);
-        // Fresh install: nothing to migrate, but make the seed Cash account the default.
-        db.execSQL("UPDATE " + T_TX + " SET account_id=" + cashId + " WHERE account_id=0");
+        seedDefaults(db);
     }
 
     private void createAuxTables(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS " + T_ACCOUNTS + "(" +
-            "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            "name TEXT, type TEXT, opening_balance REAL DEFAULT 0, archived INTEGER DEFAULT 0)");
         db.execSQL("CREATE TABLE IF NOT EXISTS " + T_CATEGORIES + "(" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "name TEXT, color INTEGER, type TEXT, budget REAL DEFAULT 0)");
@@ -64,19 +56,19 @@ public class ExpenseDb extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE IF NOT EXISTS " + T_LOANS + "(" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "person_id INTEGER, direction TEXT, principal REAL, date_ms INTEGER," +
-            "due_ms INTEGER DEFAULT 0, note TEXT, status TEXT DEFAULT 'OPEN', account_id INTEGER DEFAULT 0)");
+            "due_ms INTEGER DEFAULT 0, note TEXT, status TEXT DEFAULT 'OPEN')");
         db.execSQL("CREATE TABLE IF NOT EXISTS " + T_PAYMENTS + "(" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            "loan_id INTEGER, amount REAL, date_ms INTEGER, account_id INTEGER DEFAULT 0)");
+            "loan_id INTEGER, amount REAL, date_ms INTEGER)");
         db.execSQL("CREATE TABLE IF NOT EXISTS " + T_RECURRING + "(" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            "type TEXT, category TEXT, amount REAL, note TEXT, account_id INTEGER DEFAULT 0," +
-            "to_account_id INTEGER DEFAULT 0, interval_type TEXT, interval_n INTEGER DEFAULT 1," +
+            "type TEXT, category TEXT, amount REAL, note TEXT," +
+            "interval_type TEXT, interval_n INTEGER DEFAULT 1," +
             "next_ms INTEGER, enabled INTEGER DEFAULT 1)");
     }
 
-    /** Inserts default categories + a Cash account. Returns the Cash account id. */
-    private long seedDefaults(SQLiteDatabase db) {
+    /** Inserts the default expense + income categories. */
+    private void seedDefaults(SQLiteDatabase db) {
         for (int i = 0; i < Category.DEFAULT_EXPENSE_NAMES.length; i++) {
             ContentValues cv = new ContentValues();
             cv.put("name", Category.DEFAULT_EXPENSE_NAMES[i]);
@@ -93,26 +85,24 @@ public class ExpenseDb extends SQLiteOpenHelper {
             cv.put("budget", 0);
             db.insert(T_CATEGORIES, null, cv);
         }
-        ContentValues cash = new ContentValues();
-        cash.put("name", "Cash");
-        cash.put("type", "Cash");
-        cash.put("opening_balance", 0);
-        cash.put("archived", 0);
-        return db.insert(T_ACCOUNTS, null, cash);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
         if (oldV < 2) {
-            // Preserve existing expenses: add new columns, create aux tables, seed, then
-            // attach all legacy rows to the new Cash account.
+            // v1 only had expenses. Add the type column and the aux tables, keeping every row.
             db.execSQL("ALTER TABLE " + T_TX + " ADD COLUMN type TEXT DEFAULT 'EXPENSE'");
-            db.execSQL("ALTER TABLE " + T_TX + " ADD COLUMN account_id INTEGER DEFAULT 0");
-            db.execSQL("ALTER TABLE " + T_TX + " ADD COLUMN to_account_id INTEGER DEFAULT 0");
             createAuxTables(db);
-            long cashId = seedDefaults(db);
+            seedDefaults(db);
             db.execSQL("UPDATE " + T_TX + " SET type='EXPENSE' WHERE type IS NULL");
-            db.execSQL("UPDATE " + T_TX + " SET account_id=" + cashId + " WHERE account_id=0 OR account_id IS NULL");
+        }
+        if (oldV < 3) {
+            // The account system is gone. Transfers only ever moved money between
+            // accounts, so they carry no meaning now — drop them along with the table.
+            // Legacy account_id columns are left in place (unused) so no data is rewritten.
+            createAuxTables(db);
+            db.execSQL("DELETE FROM " + T_TX + " WHERE type='TRANSFER'");
+            db.execSQL("DROP TABLE IF EXISTS accounts");
         }
     }
 
@@ -132,8 +122,6 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("amount", e.amount);
         cv.put("note", e.note);
         cv.put("date_ms", e.dateMillis);
-        cv.put("account_id", e.accountId);
-        cv.put("to_account_id", e.toAccountId);
         return cv;
     }
 
@@ -142,26 +130,21 @@ public class ExpenseDb extends SQLiteOpenHelper {
     }
 
     public List<Expense> query(long fromMs, long toMs) {
-        return queryFiltered(fromMs, toMs, null, null, 0, null);
+        return queryFiltered(fromMs, toMs, null, null, null);
     }
 
     /**
-     * Flexible transaction query. Any of typeFilter / categoryFilter / accountFilter (0)
-     * / search may be null/0 to skip that filter.
+     * Flexible transaction query. Any of typeFilter / categoryFilter / search may be
+     * null to skip that filter.
      */
     public List<Expense> queryFiltered(long fromMs, long toMs, String typeFilter,
-                                       String categoryFilter, long accountFilter, String search) {
+                                       String categoryFilter, String search) {
         StringBuilder where = new StringBuilder("date_ms >= ? AND date_ms <= ?");
         List<String> args = new ArrayList<>();
         args.add(String.valueOf(fromMs));
         args.add(String.valueOf(toMs));
         if (typeFilter != null) { where.append(" AND type = ?"); args.add(typeFilter); }
         if (categoryFilter != null) { where.append(" AND category = ?"); args.add(categoryFilter); }
-        if (accountFilter > 0) {
-            where.append(" AND (account_id = ? OR to_account_id = ?)");
-            args.add(String.valueOf(accountFilter));
-            args.add(String.valueOf(accountFilter));
-        }
         if (search != null && !search.trim().isEmpty()) {
             where.append(" AND (note LIKE ? OR category LIKE ?)");
             String like = "%" + search.trim() + "%";
@@ -169,7 +152,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
         }
         List<Expense> list = new ArrayList<>();
         Cursor c = getReadableDatabase().query(T_TX, null, where.toString(),
-            args.toArray(new String[0]), null, null, "date_ms DESC");
+            args.toArray(new String[0]), null, null, "date_ms DESC, id DESC");
         while (c.moveToNext()) list.add(txFromCursor(c));
         c.close();
         return list;
@@ -238,98 +221,13 @@ public class ExpenseDb extends SQLiteOpenHelper {
         e.amount = c.getDouble(c.getColumnIndexOrThrow("amount"));
         e.note = c.getString(c.getColumnIndexOrThrow("note"));
         e.dateMillis = c.getLong(c.getColumnIndexOrThrow("date_ms"));
-        e.accountId = c.getLong(c.getColumnIndexOrThrow("account_id"));
-        e.toAccountId = c.getLong(c.getColumnIndexOrThrow("to_account_id"));
         if (e.type == null) e.type = Expense.TYPE_EXPENSE;
         return e;
     }
 
-    // ── Accounts ────────────────────────────────────────────────────────────────
-    public long insertAccount(Account a) {
-        ContentValues cv = new ContentValues();
-        cv.put("name", a.name);
-        cv.put("type", a.type);
-        cv.put("opening_balance", a.openingBalance);
-        cv.put("archived", a.archived ? 1 : 0);
-        return getWritableDatabase().insert(T_ACCOUNTS, null, cv);
-    }
-
-    public void updateAccount(Account a) {
-        ContentValues cv = new ContentValues();
-        cv.put("name", a.name);
-        cv.put("type", a.type);
-        cv.put("opening_balance", a.openingBalance);
-        cv.put("archived", a.archived ? 1 : 0);
-        getWritableDatabase().update(T_ACCOUNTS, cv, "id=?", new String[]{String.valueOf(a.id)});
-    }
-
-    public void deleteAccount(long id) {
-        getWritableDatabase().delete(T_ACCOUNTS, "id=?", new String[]{String.valueOf(id)});
-    }
-
-    public List<Account> queryAccounts(boolean includeArchived) {
-        List<Account> list = new ArrayList<>();
-        String sel = includeArchived ? null : "archived=0";
-        Cursor c = getReadableDatabase().query(T_ACCOUNTS, null, sel, null, null, null, "id ASC");
-        while (c.moveToNext()) {
-            Account a = new Account(
-                c.getLong(c.getColumnIndexOrThrow("id")),
-                c.getString(c.getColumnIndexOrThrow("name")),
-                c.getString(c.getColumnIndexOrThrow("type")),
-                c.getDouble(c.getColumnIndexOrThrow("opening_balance")),
-                c.getInt(c.getColumnIndexOrThrow("archived")) == 1);
-            a.balance = accountBalance(a.id, a.openingBalance);
-            list.add(a);
-        }
-        c.close();
-        return list;
-    }
-
-    public Account getAccount(long id) {
-        Cursor c = getReadableDatabase().query(T_ACCOUNTS, null, "id=?",
-            new String[]{String.valueOf(id)}, null, null, null);
-        Account a = null;
-        if (c.moveToFirst()) {
-            a = new Account(
-                c.getLong(c.getColumnIndexOrThrow("id")),
-                c.getString(c.getColumnIndexOrThrow("name")),
-                c.getString(c.getColumnIndexOrThrow("type")),
-                c.getDouble(c.getColumnIndexOrThrow("opening_balance")),
-                c.getInt(c.getColumnIndexOrThrow("archived")) == 1);
-            a.balance = accountBalance(a.id, a.openingBalance);
-        }
-        c.close();
-        return a;
-    }
-
-    /** opening + income - expense + transfers-in - transfers-out for this account. */
-    public double accountBalance(long accountId, double opening) {
-        double bal = opening;
-        bal += scalar("SELECT SUM(amount) FROM " + T_TX + " WHERE type='INCOME' AND account_id=?", accountId);
-        bal -= scalar("SELECT SUM(amount) FROM " + T_TX + " WHERE type='EXPENSE' AND account_id=?", accountId);
-        bal += scalar("SELECT SUM(amount) FROM " + T_TX + " WHERE type='TRANSFER' AND to_account_id=?", accountId);
-        bal -= scalar("SELECT SUM(amount) FROM " + T_TX + " WHERE type='TRANSFER' AND account_id=?", accountId);
-        return bal;
-    }
-
-    public double totalAccountsBalance() {
-        double total = 0;
-        for (Account a : queryAccounts(false)) total += a.balance;
-        return total;
-    }
-
-    private double scalar(String sql, long arg) {
-        Cursor c = getReadableDatabase().rawQuery(sql, new String[]{String.valueOf(arg)});
-        double v = 0;
-        if (c.moveToFirst() && !c.isNull(0)) v = c.getDouble(0);
-        c.close();
-        return v;
-    }
-
     // ── Categories ──────────────────────────────────────────────────────────────
     public long insertCategory(Category cat) {
-        getWritableDatabase().insert(T_CATEGORIES, null, catValues(cat));
-        return -1;
+        return getWritableDatabase().insert(T_CATEGORIES, null, catValues(cat));
     }
 
     public void updateCategory(Category cat) {
@@ -476,7 +374,6 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("due_ms", l.dueMillis);
         cv.put("note", l.note);
         cv.put("status", l.status);
-        cv.put("account_id", l.accountId);
         return cv;
     }
 
@@ -531,8 +428,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
             c.getLong(c.getColumnIndexOrThrow("date_ms")),
             c.getLong(c.getColumnIndexOrThrow("due_ms")),
             c.getString(c.getColumnIndexOrThrow("note")),
-            c.getString(c.getColumnIndexOrThrow("status")),
-            c.getLong(c.getColumnIndexOrThrow("account_id")));
+            c.getString(c.getColumnIndexOrThrow("status")));
     }
 
     public double loanPaid(long loanId) {
@@ -560,7 +456,6 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("loan_id", p.loanId);
         cv.put("amount", p.amount);
         cv.put("date_ms", p.dateMillis);
-        cv.put("account_id", p.accountId);
         long id = getWritableDatabase().insert(T_PAYMENTS, null, cv);
         refreshLoanStatus(p.loanId);
         return id;
@@ -580,8 +475,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
                 c.getLong(c.getColumnIndexOrThrow("id")),
                 c.getLong(c.getColumnIndexOrThrow("loan_id")),
                 c.getDouble(c.getColumnIndexOrThrow("amount")),
-                c.getLong(c.getColumnIndexOrThrow("date_ms")),
-                c.getLong(c.getColumnIndexOrThrow("account_id"))));
+                c.getLong(c.getColumnIndexOrThrow("date_ms"))));
         }
         c.close();
         return list;
@@ -621,8 +515,6 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("category", r.category);
         cv.put("amount", r.amount);
         cv.put("note", r.note);
-        cv.put("account_id", r.accountId);
-        cv.put("to_account_id", r.toAccountId);
         cv.put("interval_type", r.intervalType);
         cv.put("interval_n", r.intervalN);
         cv.put("next_ms", r.nextMillis);
@@ -659,8 +551,6 @@ public class ExpenseDb extends SQLiteOpenHelper {
             c.getString(c.getColumnIndexOrThrow("category")),
             c.getDouble(c.getColumnIndexOrThrow("amount")),
             c.getString(c.getColumnIndexOrThrow("note")),
-            c.getLong(c.getColumnIndexOrThrow("account_id")),
-            c.getLong(c.getColumnIndexOrThrow("to_account_id")),
             c.getString(c.getColumnIndexOrThrow("interval_type")),
             c.getInt(c.getColumnIndexOrThrow("interval_n")),
             c.getLong(c.getColumnIndexOrThrow("next_ms")),

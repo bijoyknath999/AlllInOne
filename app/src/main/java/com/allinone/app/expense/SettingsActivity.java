@@ -31,10 +31,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -77,7 +75,6 @@ public class SettingsActivity extends AppCompatActivity {
         addRow("Currency", "Symbol used across the app: " + prefs.getCurrency(), v -> chooseCurrency());
 
         b.llList.addView(UiKit.heading(this, "Manage"));
-        addRow("Accounts", "Add, edit, archive accounts", v -> start(AccountsActivity.class));
         addRow("Categories & Budgets", "Custom categories and monthly limits", v -> start(CategoriesActivity.class));
         addRow("Recurring", "Scheduled income & expenses", v -> start(RecurringActivity.class));
         addRow("Loans", "Borrow / lend tracking", v -> start(LoansActivity.class));
@@ -95,7 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         b.llList.addView(UiKit.heading(this, "Danger zone"));
         View clear = UiKit.row(this, getColor(R.color.color_primary), "Clear all transactions",
-            "Deletes every transaction (accounts & categories kept)", null, 0, v -> confirmClear());
+            "Deletes every transaction (categories kept)", null, 0, v -> confirmClear());
         b.llList.addView(clear);
 
         b.llList.addView(UiKit.heading(this, "About"));
@@ -119,7 +116,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void confirmClear() {
         new AlertDialog.Builder(this)
             .setTitle("Clear all transactions?")
-            .setMessage("This permanently deletes every transaction. Accounts, categories and loans are kept. Consider exporting a backup first.")
+            .setMessage("This permanently deletes every transaction. Categories and loans are kept. Consider exporting a backup first.")
             .setPositiveButton("Delete all", (d, w) -> { db.deleteAllTransactions(); toast("All transactions cleared"); })
             .setNegativeButton("Cancel", null)
             .show();
@@ -132,7 +129,7 @@ public class SettingsActivity extends AppCompatActivity {
         "  var sheet = ss.getSheetByName('Transactions') || ss.insertSheet('Transactions');\n" +
         "  var data = JSON.parse(e.postData.contents);\n" +
         "  sheet.clearContents();\n" +
-        "  sheet.appendRow(['Date','Type','Category','Amount','Note','Account','Timestamp']);\n" +
+        "  sheet.appendRow(['Date','Type','Category','Amount','Note','Timestamp']);\n" +
         "  var rows = data.rows || [];\n" +
         "  for (var i = 0; i < rows.length; i++) sheet.appendRow(rows[i]);\n" +
         "  return ContentService.createTextOutput(JSON.stringify({ok:true, count:rows.length}))\n" +
@@ -232,15 +229,12 @@ public class SettingsActivity extends AppCompatActivity {
     // ── Export ──────────────────────────────────────────────────────────────────
     private void exportToCsv(Uri uri) {
         List<Expense> all = db.queryAll();
-        Map<Long, String> accNames = new HashMap<>();
-        for (Account a : db.queryAccounts(true)) accNames.put(a.id, a.name);
         try (OutputStream os = getContentResolver().openOutputStream(uri);
              OutputStreamWriter w = new OutputStreamWriter(os, StandardCharsets.UTF_8)) {
-            w.write("type,category,amount,note,date_ms,account\n");
+            w.write("type,category,amount,note,date_ms\n");
             for (Expense e : all) {
-                String accName = accNames.containsKey(e.accountId) ? accNames.get(e.accountId) : "";
                 w.write(csv(e.type) + "," + csv(e.category) + "," + e.amount + "," +
-                        csv(e.note) + "," + e.dateMillis + "," + csv(accName) + "\n");
+                        csv(e.note) + "," + e.dateMillis + "\n");
             }
             toast("Exported " + all.size() + " transactions");
         } catch (IOException ex) {
@@ -248,13 +242,8 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    // ── Import (backward compatible with the old 4-column format) ─────────────────
+    // ── Import (backward compatible with the old 4- and 6-column formats) ─────────
     private void importFromCsv(Uri uri) {
-        List<Account> accounts = db.queryAccounts(true);
-        long defaultAccId = accounts.isEmpty() ? 0 : accounts.get(0).id;
-        Map<String, Long> accByName = new HashMap<>();
-        for (Account a : accounts) accByName.put(a.name.toLowerCase(Locale.ROOT), a.id);
-
         try (InputStream is = getContentResolver().openInputStream(uri);
              BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             String first = r.readLine();
@@ -268,7 +257,7 @@ public class SettingsActivity extends AppCompatActivity {
             String line = hasHeader ? r.readLine() : first;
             while (line != null) {
                 if (!line.trim().isEmpty()) {
-                    Expense e = parseRow(line, newFormat, accByName, defaultAccId);
+                    Expense e = parseRow(line, newFormat);
                     if (e != null) { db.insert(e); count++; }
                 }
                 line = r.readLine();
@@ -279,18 +268,18 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private Expense parseRow(String line, boolean newFormat, Map<String, Long> accByName, long defaultAccId) {
+    private Expense parseRow(String line, boolean newFormat) {
         String[] c = parseCsvLine(line);
         try {
             Expense e = new Expense();
             if (newFormat && c.length >= 5) {
+                // type,category,amount,note,date_ms — a trailing account column from an
+                // older backup is simply ignored.
                 e.type = emptyToDefault(c[0], Expense.TYPE_EXPENSE);
                 e.category = c[1];
                 e.amount = Double.parseDouble(c[2]);
-                e.note = c.length > 3 ? c[3] : "";
+                e.note = c[3];
                 e.dateMillis = Long.parseLong(c[4]);
-                String accName = c.length > 5 ? c[5].toLowerCase(Locale.ROOT) : "";
-                e.accountId = accByName.containsKey(accName) ? accByName.get(accName) : defaultAccId;
             } else if (c.length >= 4) {
                 // Legacy: category,amount,note,date_ms
                 e.type = Expense.TYPE_EXPENSE;
@@ -298,10 +287,11 @@ public class SettingsActivity extends AppCompatActivity {
                 e.amount = Double.parseDouble(c[1]);
                 e.note = c[2];
                 e.dateMillis = Long.parseLong(c[3]);
-                e.accountId = defaultAccId;
             } else {
                 return null;
             }
+            // Anything that is not income (including legacy TRANSFER rows) is an expense.
+            if (!Expense.TYPE_INCOME.equals(e.type)) e.type = Expense.TYPE_EXPENSE;
             return e;
         } catch (NumberFormatException ex) {
             return null;

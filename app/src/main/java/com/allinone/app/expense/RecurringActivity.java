@@ -82,9 +82,6 @@ public class RecurringActivity extends AppCompatActivity {
     }
 
     private void showEdit(final RecurringRule existing) {
-        final List<Account> accounts = db.queryAccounts(false);
-        if (accounts.isEmpty()) { toast("Create an account first"); return; }
-
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         int p = UiKit.dp(this, 22);
@@ -108,18 +105,6 @@ public class RecurringActivity extends AppCompatActivity {
         catContainer.setOrientation(LinearLayout.VERTICAL);
         box.addView(spacer());
         box.addView(catContainer);
-
-        final long[] selAcc = {existing != null ? existing.accountId : accounts.get(0).id};
-        final TextView tvAcc = picker("Account: " + nameFor(accounts, selAcc[0]));
-        tvAcc.setOnClickListener(v -> {
-            String[] names = new String[accounts.size()];
-            for (int i = 0; i < accounts.size(); i++) names[i] = accounts.get(i).name;
-            new AlertDialog.Builder(this).setTitle("Account").setItems(names, (d, w) -> {
-                selAcc[0] = accounts.get(w).id; tvAcc.setText("Account: " + accounts.get(w).name);
-            }).show();
-        });
-        box.addView(spacer());
-        box.addView(tvAcc);
 
         final String[] interval = {existing != null ? existing.intervalType : RecurringRule.MONTHLY};
         final TextView tvInterval = picker("Repeat: " + labelFor(interval[0]));
@@ -182,8 +167,6 @@ public class RecurringActivity extends AppCompatActivity {
                 r.category = selCat[0];
                 r.amount = amount;
                 r.note = etNote.getText().toString().trim();
-                r.accountId = selAcc[0];
-                r.toAccountId = 0;
                 r.intervalType = interval[0];
                 r.intervalN = everyN;
                 r.nextMillis = next.getTimeInMillis();
@@ -255,11 +238,6 @@ public class RecurringActivity extends AppCompatActivity {
     private String labelFor(String interval) {
         for (int i = 0; i < INTERVALS.length; i++) if (INTERVALS[i].equals(interval)) return INTERVAL_LABELS[i];
         return "Monthly";
-    }
-
-    private String nameFor(List<Account> accounts, long id) {
-        for (Account a : accounts) if (a.id == id) return a.name;
-        return accounts.isEmpty() ? "" : accounts.get(0).name;
     }
 
     private TextView chip(String text, boolean on) {

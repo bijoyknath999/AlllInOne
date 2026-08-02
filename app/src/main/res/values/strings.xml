@@ -20,7 +20,7 @@
 
     <!-- Expense Tracker -->
     <string name="tool_expense_title">Expense Tracker</string>
-    <string name="tool_expense_desc">Track your weekly &amp; monthly spending</string>
+    <string name="tool_expense_desc">Budget &amp; track your monthly spending</string>
 
     <!-- Reminders -->
     <string name="tool_reminder_title">Reminders</string>

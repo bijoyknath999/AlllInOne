@@ -98,10 +98,7 @@
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Money Manager sub-screens -->
-        <activity android:name=".expense.AccountsActivity"
-            android:exported="false" android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
+        <!-- Expense tracker sub-screens -->
         <activity android:name=".expense.CategoriesActivity"
             android:exported="false" android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />

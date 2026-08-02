@@ -50,9 +50,10 @@ public class MoneyPrefs {
         prefs.edit().putString(KEY_SHEETS_URL, url == null ? "" : url.trim()).apply();
     }
 
-    /** Formats an amount with the current currency symbol, e.g. "$1,234.50". */
+    /** Formats an amount with the current currency symbol, e.g. "$1,234.50" / "-$99.00". */
     public String format(double amount) {
-        return getCurrency() + String.format(Locale.getDefault(), "%,.2f", amount);
+        String body = getCurrency() + String.format(Locale.getDefault(), "%,.2f", Math.abs(amount));
+        return amount < 0 ? "-" + body : body;
     }
 
     /** Formats a signed amount with leading + / - and the currency symbol. */

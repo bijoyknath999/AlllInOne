@@ -4,9 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_marginBottom="9dp"
+    android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/bg_card"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="18dp"
     app:cardElevation="0dp">
 
     <LinearLayout
@@ -14,23 +15,20 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="14dp">
+        android:padding="13dp">
 
-        <!-- Category badge -->
+        <!-- Category avatar: coloured circle showing the first letter -->
         <TextView
-            android:id="@+id/tv_category"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/tv_cat_dot"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
             android:gravity="center"
-            android:minWidth="72dp"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
-            android:text="Food"
+            android:text="F"
             android:textColor="@color/white"
-            android:textSize="11sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
-        <!-- Note + Date -->
+        <!-- Category + note + date -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -39,12 +37,24 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/tv_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Food"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+            <TextView
                 android:id="@+id/tv_note"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text=""
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
                 android:ellipsize="end"
                 android:maxLines="1" />
 
@@ -54,38 +64,30 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="May 20, 2026"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textColor="@color/text_hint"
+                android:textSize="11sp" />
         </LinearLayout>
 
-        <!-- Amount + Delete -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tv_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="end">
+            android:text="- $0.00"
+            android:textColor="@color/color_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/tv_amount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="- $0.00"
-                android:textColor="@color/color_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/btn_delete"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginTop="4dp"
-                android:layout_gravity="end"
-                android:src="@drawable/ic_delete"
-                android:contentDescription="@null"
-                android:alpha="0.5"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackgroundBorderless" />
-        </LinearLayout>
+        <ImageView
+            android:id="@+id/btn_delete"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="6dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="@null"
+            android:alpha="0.4"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

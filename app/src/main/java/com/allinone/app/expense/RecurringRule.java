@@ -15,8 +15,6 @@ public class RecurringRule {
     public String category;
     public double amount;
     public String note;
-    public long accountId;
-    public long toAccountId;   // for transfers (unused for income/expense)
     public String intervalType; // DAILY/WEEKLY/MONTHLY/YEARLY
     public int intervalN;       // every N units (e.g. every 2 weeks)
     public long nextMillis;     // next time this should post
@@ -25,15 +23,12 @@ public class RecurringRule {
     public RecurringRule() {}
 
     public RecurringRule(long id, String type, String category, double amount, String note,
-                         long accountId, long toAccountId, String intervalType, int intervalN,
-                         long nextMillis, boolean enabled) {
+                         String intervalType, int intervalN, long nextMillis, boolean enabled) {
         this.id = id;
         this.type = type;
         this.category = category;
         this.amount = amount;
         this.note = note;
-        this.accountId = accountId;
-        this.toAccountId = toAccountId;
         this.intervalType = intervalType;
         this.intervalN = intervalN;
         this.nextMillis = nextMillis;

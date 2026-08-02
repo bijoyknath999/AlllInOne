@@ -16,10 +16,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -39,8 +37,6 @@ public class GoogleSheetsSync {
             try {
                 ExpenseDb db = new ExpenseDb(ctx);
                 List<Expense> all = db.queryAll();
-                Map<Long, String> accNames = new HashMap<>();
-                for (Account a : db.queryAccounts(true)) accNames.put(a.id, a.name);
 
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                 JSONArray rows = new JSONArray();
@@ -51,8 +47,6 @@ public class GoogleSheetsSync {
                     row.put(e.category == null ? "" : e.category);
                     row.put(e.amount);
                     row.put(e.note == null ? "" : e.note);
-                    String acc = accNames.containsKey(e.accountId) ? accNames.get(e.accountId) : "";
-                    row.put(acc);
                     row.put(e.dateMillis);
                     rows.put(row);
                 }

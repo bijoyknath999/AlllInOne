@@ -20,8 +20,6 @@ public class RecurringEngine {
                 e.amount = r.amount;
                 e.note = r.note == null ? "" : r.note;
                 e.dateMillis = next;
-                e.accountId = r.accountId;
-                e.toAccountId = r.toAccountId;
                 db.insert(e);
                 posted++;
                 next = r.advance(next);

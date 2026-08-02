@@ -17,7 +17,6 @@ public class Loan {
     public long dueMillis;     // 0 = no due date
     public String note;
     public String status;      // OPEN or SETTLED
-    public long accountId;     // optional linked account, 0 = none
 
     // Computed at query time.
     public String personName;
@@ -27,7 +26,7 @@ public class Loan {
     public Loan() {}
 
     public Loan(long id, long personId, String direction, double principal,
-                long dateMillis, long dueMillis, String note, String status, long accountId) {
+                long dateMillis, long dueMillis, String note, String status) {
         this.id = id;
         this.personId = personId;
         this.direction = direction;
@@ -36,6 +35,5 @@ public class Loan {
         this.dueMillis = dueMillis;
         this.note = note;
         this.status = status;
-        this.accountId = accountId;
     }
 }
