@@ -28,8 +28,20 @@ public class ExpenseDb extends SQLiteOpenHelper {
     private static final String T_PAYMENTS  = "loan_payments";
     private static final String T_RECURRING = "recurring";
 
+    private final Context appCtx;
+
     public ExpenseDb(Context ctx) {
         super(ctx, DB_NAME, null, DB_VERSION);
+        appCtx = ctx.getApplicationContext();
+    }
+
+    /**
+     * Called after every write so a configured Google Sheet stays up to date without
+     * the caller having to remember to sync. The upload itself is debounced and runs
+     * off the main thread; it is a no-op when sync is not set up.
+     */
+    private void changed() {
+        GoogleSheetsSync.autoSync(appCtx);
     }
 
     // ── Schema ───────────────────────────────────────────────────────────────
@@ -108,11 +120,14 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     // ── Transactions ───────────────────────────────────────────────────────────
     public long insert(Expense e) {
-        return getWritableDatabase().insert(T_TX, null, txValues(e));
+        long id = getWritableDatabase().insert(T_TX, null, txValues(e));
+        changed();
+        return id;
     }
 
     public void update(Expense e) {
         getWritableDatabase().update(T_TX, txValues(e), "id=?", new String[]{String.valueOf(e.id)});
+        changed();
     }
 
     private ContentValues txValues(Expense e) {
@@ -127,6 +142,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     public void delete(long id) {
         getWritableDatabase().delete(T_TX, "id=?", new String[]{String.valueOf(id)});
+        changed();
     }
 
     public List<Expense> query(long fromMs, long toMs) {
@@ -211,6 +227,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     public void deleteAllTransactions() {
         getWritableDatabase().delete(T_TX, null, null);
+        changed();
     }
 
     private Expense txFromCursor(Cursor c) {
@@ -227,12 +244,15 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     // ── Categories ──────────────────────────────────────────────────────────────
     public long insertCategory(Category cat) {
-        return getWritableDatabase().insert(T_CATEGORIES, null, catValues(cat));
+        long id = getWritableDatabase().insert(T_CATEGORIES, null, catValues(cat));
+        changed();
+        return id;
     }
 
     public void updateCategory(Category cat) {
         getWritableDatabase().update(T_CATEGORIES, catValues(cat), "id=?",
             new String[]{String.valueOf(cat.id)});
+        changed();
     }
 
     private ContentValues catValues(Category cat) {
@@ -246,6 +266,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     public void deleteCategory(long id) {
         getWritableDatabase().delete(T_CATEGORIES, "id=?", new String[]{String.valueOf(id)});
+        changed();
     }
 
     /** typeFilter null = all categories. */
@@ -289,7 +310,9 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("name", p.name);
         cv.put("phone", p.phone);
         cv.put("note", p.note);
-        return getWritableDatabase().insert(T_PEOPLE, null, cv);
+        long id = getWritableDatabase().insert(T_PEOPLE, null, cv);
+        changed();
+        return id;
     }
 
     public void updatePerson(Person p) {
@@ -298,6 +321,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("phone", p.phone);
         cv.put("note", p.note);
         getWritableDatabase().update(T_PEOPLE, cv, "id=?", new String[]{String.valueOf(p.id)});
+        changed();
     }
 
     public void deletePerson(long id) {
@@ -312,6 +336,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
         c.close();
         db.delete(T_LOANS, "person_id=?", new String[]{String.valueOf(id)});
         db.delete(T_PEOPLE, "id=?", new String[]{String.valueOf(id)});
+        changed();
     }
 
     public List<Person> queryPeople() {
@@ -357,12 +382,15 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     // ── Loans ──────────────────────────────────────────────────────────────────
     public long insertLoan(Loan l) {
-        return getWritableDatabase().insert(T_LOANS, null, loanValues(l));
+        long id = getWritableDatabase().insert(T_LOANS, null, loanValues(l));
+        changed();
+        return id;
     }
 
     public void updateLoan(Loan l) {
         getWritableDatabase().update(T_LOANS, loanValues(l), "id=?",
             new String[]{String.valueOf(l.id)});
+        changed();
     }
 
     private ContentValues loanValues(Loan l) {
@@ -381,6 +409,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.delete(T_PAYMENTS, "loan_id=?", new String[]{String.valueOf(id)});
         db.delete(T_LOANS, "id=?", new String[]{String.valueOf(id)});
+        changed();
     }
 
     /** personId 0 = all people; statusFilter null = all. */
@@ -458,12 +487,29 @@ public class ExpenseDb extends SQLiteOpenHelper {
         cv.put("date_ms", p.dateMillis);
         long id = getWritableDatabase().insert(T_PAYMENTS, null, cv);
         refreshLoanStatus(p.loanId);
+        changed();
         return id;
     }
 
     public void deletePayment(long id, long loanId) {
         getWritableDatabase().delete(T_PAYMENTS, "id=?", new String[]{String.valueOf(id)});
         refreshLoanStatus(loanId);
+        changed();
+    }
+
+    /** Every repayment across all loans, oldest first (used by the Google Sheets sync). */
+    public List<LoanPayment> queryAllPayments() {
+        List<LoanPayment> list = new ArrayList<>();
+        Cursor c = getReadableDatabase().query(T_PAYMENTS, null, null, null, null, null, "date_ms ASC");
+        while (c.moveToNext()) {
+            list.add(new LoanPayment(
+                c.getLong(c.getColumnIndexOrThrow("id")),
+                c.getLong(c.getColumnIndexOrThrow("loan_id")),
+                c.getDouble(c.getColumnIndexOrThrow("amount")),
+                c.getLong(c.getColumnIndexOrThrow("date_ms"))));
+        }
+        c.close();
+        return list;
     }
 
     public List<LoanPayment> queryPayments(long loanId) {
@@ -501,12 +547,15 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     // ── Recurring rules ──────────────────────────────────────────────────────────
     public long insertRecurring(RecurringRule r) {
-        return getWritableDatabase().insert(T_RECURRING, null, recValues(r));
+        long id = getWritableDatabase().insert(T_RECURRING, null, recValues(r));
+        changed();
+        return id;
     }
 
     public void updateRecurring(RecurringRule r) {
         getWritableDatabase().update(T_RECURRING, recValues(r), "id=?",
             new String[]{String.valueOf(r.id)});
+        changed();
     }
 
     private ContentValues recValues(RecurringRule r) {
@@ -524,6 +573,7 @@ public class ExpenseDb extends SQLiteOpenHelper {
 
     public void deleteRecurring(long id) {
         getWritableDatabase().delete(T_RECURRING, "id=?", new String[]{String.valueOf(id)});
+        changed();
     }
 
     public List<RecurringRule> queryRecurring() {
@@ -542,6 +592,58 @@ public class ExpenseDb extends SQLiteOpenHelper {
         while (c.moveToNext()) list.add(recFromCursor(c));
         c.close();
         return list;
+    }
+
+    // ── Restore from Google Sheets ────────────────────────────────────────────────
+
+    /**
+     * Replaces every money record with the given data in a single transaction. Ids are
+     * preserved so loans keep pointing at their person and repayments at their loan.
+     * Used by {@link GoogleSheetsSync#restore} — a fresh install pulls its whole
+     * history back from the sheet.
+     */
+    public void restoreAll(List<Expense> tx, List<Category> cats, List<Person> people,
+                           List<Loan> loans, List<LoanPayment> pays, List<RecurringRule> rules) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(T_TX, null, null);
+            db.delete(T_CATEGORIES, null, null);
+            db.delete(T_PEOPLE, null, null);
+            db.delete(T_LOANS, null, null);
+            db.delete(T_PAYMENTS, null, null);
+            db.delete(T_RECURRING, null, null);
+
+            if (cats != null) for (Category c : cats) db.insert(T_CATEGORIES, null, withId(catValues(c), c.id));
+            if (people != null) for (Person p : people) {
+                ContentValues cv = new ContentValues();
+                cv.put("name", p.name);
+                cv.put("phone", p.phone);
+                cv.put("note", p.note);
+                db.insert(T_PEOPLE, null, withId(cv, p.id));
+            }
+            if (tx != null) for (Expense e : tx) db.insert(T_TX, null, withId(txValues(e), e.id));
+            if (loans != null) for (Loan l : loans) db.insert(T_LOANS, null, withId(loanValues(l), l.id));
+            if (pays != null) for (LoanPayment p : pays) {
+                ContentValues cv = new ContentValues();
+                cv.put("loan_id", p.loanId);
+                cv.put("amount", p.amount);
+                cv.put("date_ms", p.dateMillis);
+                db.insert(T_PAYMENTS, null, withId(cv, p.id));
+            }
+            if (rules != null) for (RecurringRule r : rules) db.insert(T_RECURRING, null, withId(recValues(r), r.id));
+
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        // Restored rows already match the sheet, so no upload is triggered here.
+    }
+
+    /** Keeps the original row id when it is known; lets SQLite assign one otherwise. */
+    private ContentValues withId(ContentValues cv, long id) {
+        if (id > 0) cv.put("id", id);
+        return cv;
     }
 
     private RecurringRule recFromCursor(Cursor c) {
